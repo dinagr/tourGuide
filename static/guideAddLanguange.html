@@ -1,0 +1,67 @@
+<navigation-menu></navigation-menu>	
+<div class="container">	
+	<message></message>
+	<div class="row">
+		<div class="col-xs-12 mainData">
+			<form ng-submit="submitLanguages()">
+				<h4 class="formHeadline">Add you tour Languages</h4>
+				<div class="form-group">
+					<label for="language">Language:</label>
+					<select class="form-control" ng-model="language">
+					    <option>English</option>
+					    <option>Hebrew</option>
+					    <option>Arabic</option>
+					    <option>Spanish</option>
+					    <option>French</option>
+					    <option>Italian</option>
+					    <option>German</option>
+					    <option>Chines</option>
+					    <option>Japanese</option>
+					    <option>Hindi</option>
+					    <option>Russian</option>
+					    <option>Czech</option>
+					    <option>Greek</option>
+					    <option>Korean</option>
+					    <option>Romanian</option>
+					    <option>Thai</option>
+					    <option>Portuguese</option>
+					    <option>Vietnamese</option>
+					    <option>Turkish</option>
+					</select>
+				</div>
+				<div class="form-button">
+					<button type="submit" value="create" class="btn btn-primary" >Add Language</button>
+				</div>
+				</br>
+				<div class="form-button">
+					<a ng-href="#/guideAddCountries/{{userId}}" class="btn btn-info" role="button">Continue</a>	
+				</div>
+			</form>	
+		</div><!-- /.col-lg-6 -->
+	</div>
+	<div class="row" ng-show="languages.length > 0">
+		<div class="col-xs-12 mainData">
+			<div class="table-responsive">          
+				<table class="table centered-table">
+					<thead>
+						<tr>
+							<th class="centered-table">Languages</th>
+							<th class="centered-table">Remove Language</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="lang in languages | orderBy:'lang.languageName'">
+							<td ng-model="userLang">
+								{{lang.languageName}}
+							</td>
+							<td>
+								<span ng-click="removeLanguage(lang.languageName)" class="glyphicon glyphicon-remove">
+								</span>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>

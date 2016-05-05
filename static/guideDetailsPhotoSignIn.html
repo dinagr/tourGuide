@@ -1,0 +1,20 @@
+<navigation-menu></navigation-menu>	
+<div class="container">
+	<message></message>
+	<div class="row">
+		<div class="col-xs-12 mainData">
+			<form  enctype="multipart/form-data" action="{{url_for('savePhotoGuide', user_id = user_id)}}">
+			  	<h4 class="formHeadline">Join our Guides</h4>
+				<div class="form-group">
+					<label for="usr">Add your photo:</label>
+					<input type="file" class="form-control" id = "picture_file" name="picture_file">
+				</div>
+				<div class="form-button">
+					<button type="submit" value="create" class="btn btn-primary">Continue</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+

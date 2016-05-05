@@ -1,0 +1,42 @@
+<navigation-menu></navigation-menu>	
+<div class="container">
+	<message></message>
+	<div class="row">
+		<div class="col-xs-12 mainData">
+			<form ng-submit="updateGuideDetails()">
+			  	<h4 class="formHeadline">Edit Guide Details</h4>
+				<div class="form-group">
+					<label for="usr">First name:</label>
+					<input type="text" class="form-control" ng-model="firstName" required>
+				</div>
+				<div class="form-group">
+					<label for="usr">Last name:</label>
+					<input type="text" class="form-control" ng-model="lastName" required>
+				</div>
+				<div class="form-group">
+					<label for="usr">Email:</label>
+					<input type="text" class="form-control" ng-model="email" required>
+				</div>
+				<div class="form-group">
+					<label for="certificate">Guide certificate:</label>
+					<input type="text" class="form-control" ng-model="certificate" required>
+				</div>
+				<div class="form-group">
+					<label for="yearsOfExperience">Years Of Experience:</label>
+					<input type="text" class="form-control" ng-model="years" required>
+				</div>
+				<div class="form-group">
+					<label for="usr">Photo:</label>
+					<input type='file' class="form-control" name='file' onchange="angular.element(this).scope().uploadFile(this.files)">
+				</div>
+				<div class="form-group">
+					<label for="comment">Describe yourself in a few words:</label>
+					<textarea class="form-control" rows = "4" ng-model="descrip" required></textarea>
+				</div>
+				<div class="form-button">
+					<button type="submit" value="create" class="btn btn-primary">Continue</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>

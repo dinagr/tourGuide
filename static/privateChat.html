@@ -1,0 +1,29 @@
+<navigation-menu></navigation-menu>	
+<div class="container">
+	<message></message>
+	<div class="row">
+		<div class="col-xs-12 mainData profile-header">
+			Message Box
+		</div>
+	</div>
+	<div class="row" ng-show="users.length > 0">
+		<div class="col-xs-12 mainData">
+			</br>
+			<div class="list-group profile-mini-header" ng-repeat = "u in users">
+			  <a href="#" class="list-group-item privateChat" ng-if = "u.id != loginUserId" ng-href='#/writeMessage/{{loginUserId}}/{{u.id}}'>
+			  	Chat with {{u.userName}}
+			  </a>
+			</div>
+		</div>
+	</div>
+	<div class="row cen mainData"  ng-show="users.length == 0">
+		<div class="col-xs-12 profile-mini-header">
+			</br>
+			There are no messages to display, you did not chat with any guide!
+			</br>
+			</br>
+		</div>
+	</div>
+</div>
+
+

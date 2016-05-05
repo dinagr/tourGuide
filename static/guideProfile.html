@@ -1,0 +1,142 @@
+<navigation-menu></navigation-menu>	
+<div class="container form-button">
+	<message></message>
+	<div class="row">
+		<div class="col-xs-12 mainData">
+			<span class="profile-header">{{firstName}} {{lastName}}</span>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-12 mainData">
+			<img ng-src="static/uploads/{{photo}}" class="img-circle" alt="Bird" style="width:150px;height:150px">
+			</br>
+			</br>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-12 mainData">
+			<a ng-if="loginUserId == userId" class="btn btn-success btn-guide" ng-href='#/editGuideDetails/{{userId}}' role="button">Edit details</a>
+			<a ng-if="loginUserId == userId" class="btn btn-success btn-guide" ng-href='#/guideAddLanguange/{{userId}}' role="button">Edit languages and locations</a>
+			<a ng-if="loginUserId == userId" class="btn btn-success btn-guide" ng-href='#/updateGuideAvailability/{{userId}}' role="button">Manage your availability</a>
+			<a ng-if="loginUserId != userId" class="btn btn-success btn-guide" ng-href='#/writeMessage/{{loginUserId}}/{{userId}}' role="button">Write a message</a>
+			</br>
+			</br>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-12 mainData">
+			<span class="profile-small-header">A little bit about {{firstName}}</span> 
+			<p class="profile">
+				{{desc}}
+			</p>
+			<hr>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-4 mainData profile">
+			<p>
+				<span class="profile-small-header">Age</span> 
+			</p>
+			<p>
+				{{age}}
+			</p>
+			<hr>
+		</div>
+		<div class="col-xs-4 mainData profile box-profile">
+		  	<p>
+		  		<span class="profile-small-header">Certificate</span> 
+		  	</p>
+		  	<p>
+		  		{{certificate}}
+		  	</p>
+		  	<hr>
+		  </div>
+		<div class="col-xs-4 mainData profile box-profile">
+		  	<p>
+		  		<span class="profile-small-header">Experience</span> 
+		  	</p>
+		  	<p>
+		  		{{years}} 
+		  	</p>
+		  	<hr>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-12 mainData box-profile">
+			<p class="profile-small-header">
+				{{firstName}} can guide in the following languages:
+			</p>
+			<p ng-repeat="lang in languages" class="profile" ng-show="languages.length > 0">
+			  	{{lang.languageName}}
+			</p>
+			<p class="profile" ng-show="languages.length == 0">
+			  	No languages were entered
+			</p>
+			<hr>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-12 mainData box-profile">
+			<p class="profile-small-header">
+				{{firstName}} can guide in the following locations:
+			</p>
+			<p ng-repeat="loc in locations" class="profile" ng-show="locations.length > 0">
+			  	{{loc.city}},{{loc.country}}
+			</p>
+			<p class="profile" ng-show="locations.length == 0">
+			  	No locations were entered
+			</p>
+			<hr>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-12 mainData left">
+			<span class="reviews-header">Reviews</span>
+			<div ng-show="reviews.length == 0" class="reviews">
+				No reviews were written for {{firstName}}
+			</div>
+		</div>
+	</div>
+	<div ng-show="loginUserId" class="row reviews">
+		<div class="col-xs-12 mainData">
+			<form ng-submit="addReview()">
+				<div class="form-group">
+					<label for="comment">Add a review for {{firstName}}</label>
+					<textarea class="form-control" rows = "2" ng-model="review">
+					</textarea>	
+				</div>
+				<div class="form-group">
+					<label for="sel1">Choose a grade (5 is the best grade)</label>
+					<select class="form-control" ng-model="reviewGrade">
+						<option>1</option>
+					    <option>2</option>
+					    <option>3</option>
+					    <option>4</option>
+					    <option>5</option>
+					</select>
+				</div>
+				<button type="submit" value="create" class="btn btn-primary">add</button>
+			</form>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-12 mainData reviews">
+			<div ng-repeat = "rev in reviews | orderBy:'rev.timestmp'" class="panel panel-info">
+			  	<div class="panel-heading">
+			  		From {{rev.userIdWriter}} 
+			  		</br>
+				  	<span class="glyphicon glyphicon-star" ng-if="rev.grade >= 1"></span>
+				  	<span class="glyphicon glyphicon-star" ng-if="rev.grade >= 2"></span>
+				  	<span class="glyphicon glyphicon-star" ng-if="rev.grade >= 3"></span>
+				  	<span class="glyphicon glyphicon-star" ng-if="rev.grade >= 4"></span>
+				  	<span class="glyphicon glyphicon-star" ng-if="rev.grade >= 5"></span>
+			  	</div>
+			  	<div class="panel-body">
+			  		{{rev.content}}
+			  		</br>
+			  		<span class="review-time">{{rev.timestmp}}</span>
+			  	</div>
+			  </div>
+		</div>
+	</div>
+</div>

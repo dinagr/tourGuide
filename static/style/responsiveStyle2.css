@@ -1,0 +1,23 @@
+.search-box{
+  width: 85vw;
+}
+
+.full{
+  font-size: 1.2em;
+}
+
+.btn{
+	font-size: 0.9em;
+}
+
+.error-msg{
+  margin-right: 15%;
+}
+
+.centered {
+  position: relative;
+}
+
+.cen{
+  margin-top: 40vw;
+}

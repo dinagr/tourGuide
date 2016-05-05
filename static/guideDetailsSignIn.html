@@ -1,0 +1,48 @@
+<navigation-menu></navigation-menu>	
+<div class="container">
+	<message></message>
+	<div class="row">
+		<div class="col-xs-12">
+			<div class="alert alert-danger alert-center" ng-show="message2">
+	  			{{message2}}
+			</div>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-xs-12 mainData">
+			<form  enctype="multipart/form-data" ng-submit="submitGuideDetailsForm()">
+			  	<h4 class="formHeadline">Join our Guides</h4>
+			  	<p class="profile left">You must enter all details to be visible to the users!</p>
+				<div class="form-group">
+					<label for="dateOfBirth">Age:</label>
+					<input type="text" class="form-control" required ng-model="age">
+				</div>
+				<div class="form-group">
+					<label for="certificate">Guide certificate:</label>
+					<input type="text" class="form-control" required ng-model="certificate">
+				</div>
+				<div class="form-group">
+					<label for="yearsOfExperience">Years Of Experience:</label>
+					<input type="text" class="form-control" ng-model="yearsOfExperience">
+				</div>
+				<div class="form-group">
+					<label for="usr">Add your photo:</label>
+					<input type='file' class="form-control" required name='file' onchange="angular.element(this).scope().uploadFile(this.files)">
+				</div>
+				<div class="form-group">
+					<label for="comment">Describe yourself in a few words:</label>
+					<textarea class="form-control" rows = "4" required ng-model="desc"></textarea>
+				</div>
+				<div class="form-button">
+					<button type="submit" value="create" class="btn btn-primary">save and Continue</button>
+				</div>
+				</br>
+				<div class="form-button" ng-if="message || message2">
+					<a type="submit" value="create" class="btn btn-primary" ng-href = "#/guideAddLanguange/{{userId}}">Continue</a>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+
+

@@ -1,0 +1,51 @@
+<navigation-menu></navigation-menu>	
+<div class="container">	
+	<message></message>
+	<div class="row mainData">
+		<div class="col-xs-5">
+			<form ng-submit="submitDates()">
+				<h4 class="formHeadline">Manage your availability</h4>
+				<div class="form-group">
+					<label for="country">From Date</label>
+					<input type="text" ng-click='open1($event)' class="calendar-form campaign-form-calendar-input" id='campaign-date' datepicker-popup="dd/MM/yy" ng-model="fromDate" is-open="opened1" datepicker-options="dateOptions" ng-required="true" close-text="Close" placeholder='I am buisy from date'/>
+					<button type="button" class="btn btn-default" ng-click="open1($event)"><i class="glyphicon glyphicon-calendar"></i></button>	
+				</div>
+				<div class="form-group">
+					<label for="country">To Date</label>
+					<input type="text" ng-click='open2($event)' class="calendar-form campaign-form-calendar-input" id='campaign-date' datepicker-popup="dd/MM/yy" ng-model="toDate" is-open="opened2" datepicker-options="dateOptions" ng-required="true" close-text="Close" placeholder='I am buisy until date'/>
+					<button type="button" class="btn btn-default" ng-click="open2($event)"><i class="glyphicon glyphicon-calendar"></i></button>	
+				</br>
+				<span ng-show="fromDate > toDate">To date must be bigger than From date</span>
+				</div>	
+
+				<div class="form-button">
+					<button type="submit" value="create" ng-disabled='fromDate > toDate' class="btn btn-primary" >Update</button>
+				</div>	
+			</form>
+			<div class="form-button">
+				<a ng-href="#/guideProfile/{{userId}}" class="btn btn-info" role="button">Finish</a>
+			</div>
+			</br>
+			</br>
+		</div>
+		<div class="col-xs-7 form-button">
+			<label class="formHeadline">Your Scheduele:</label>
+			<div class="table-responsive">          
+				<table class="table form-button">
+					<thead>
+						<tr>
+							<th class="form-button">From date</th>
+							<th class="form-button">To date</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr ng-repeat="avail in availability | orderBy:'avail.startDate'">
+							<td>{{avail.startDate}}</td>
+							<td>{{avail.endDate}}<span ng-click="removeBusyDates(avail.startDate,avail.endDate)" class="glyphicon glyphicon-remove"></span></td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+</div>

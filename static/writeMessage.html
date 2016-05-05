@@ -1,0 +1,50 @@
+<navigation-menu></navigation-menu>	
+<div class="container">
+	<message></message>
+	<div class="row">
+		<div class="col-xs-12 mainData">
+			<span class = "profile-header">Messanger</span>
+			</br>
+			<span class = "profile-mini-header">Chat between {{user1.userName}} and {{user2.userName}}</span>
+			<form ng-submit="addMessage()" class="form-headers">
+				<div class="form-group">
+					<label for="title">Title:</label>
+					<input type="text" class="form-control" ng-model="msgTitle">
+				</div>
+				<div class="form-group">
+					<label for="comment">Content:</label>
+					<textarea class="form-control" rows = "5" ng-model="msgContent"></textarea>
+				</div>
+				<div class="form-button">
+					<button type="submit" value="create" class="btn btn-primary">Add message</button>
+				</div>
+			</form>
+		</div>
+	</div>	
+	<div class="row">
+		<div class="col-xs-12 mainData reviews">
+			<div ng-repeat="msg in chat | orderBy:'-msg.timestmp'" class="chat">
+				<div class="chat-me well" ng-if ="msg.userIdWriter == loginUserId" >
+					<span class="profile" ng-if="user1.id == msg.userIdWriter"><u>From {{user1.userName}}</u></span>
+					<span class="profile" ng-if="user2.id == msg.userIdWriter"><u>From {{user2.userName}}</u></span>
+					</br>
+					{{msg.headline}}
+					</br>
+					<span class="chat-content">{{msg.content}}</span>
+					</br>
+					<span class="review-time">{{msg.timestmp}}</span>
+				</div>
+				<div class="chat-you well" ng-if ="msg.userIdWriter != loginUserId" >
+					<span class="profile" ng-if="user1.id == msg.userIdWriter"><u>From {{user1.userName}}</u></span>
+					<span class="profile" ng-if="user2.id == msg.userIdWriter"><u>From {{user2.userName}}</u></span>
+					</br>
+					{{msg.headline}}
+					</br>
+					<span class="chat-content">{{msg.content}}</span>
+					</br>
+					<span class="review-time">{{msg.timestmp}}</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

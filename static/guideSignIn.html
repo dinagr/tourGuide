@@ -1,0 +1,39 @@
+<navigation-menu></navigation-menu>	
+<div class="container">
+	<message></message>
+	<div class="row">
+		<div class="col-xs-12 mainData">
+			<form ng-submit="submitGuideForm()">
+			  	<h4 class="formHeadline">Join our Guides</h4>
+				<div class="form-group">
+					<label for="usr">First name:</label>
+					<input type="text" class="form-control" ng-model="firstName">
+				</div>
+				<div class="form-group">
+					<label for="usr">Last name:</label>
+					<input type="text" class="form-control" ng-model="lastName">
+				</div>
+				<div class="form-group">
+					<label for="usr">Email:</label>
+					<input type="text" class="form-control" ng-model="email">
+				</div>
+				<div class="form-group">
+					<label for="usr">User Name:</label>
+					<input type="text" class="form-control" ng-model="userName">
+				</div>
+				<div class="form-group">
+					<label for="pwd">Password:</label>
+					<input type="password" class="form-control" ng-model="password">
+				</div>
+				<div class="form-group">
+					<label for="pwd">Re-enter password:</label>
+					<input type="password" class="form-control" ng-model="password2">
+					<span ng-show="password != password2">The passwords that you have entered are not identical</span>
+				</div>
+				<div class="form-button">
+					<button type="submit" value="create" ng-disabled='password != password2' class="btn btn-primary">Continue</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
