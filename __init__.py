@@ -1053,4 +1053,4 @@ if __name__ == '__main__':
     # If debug is enabled, the server will reload itself each time it notices a
     # code change.
     app.debug = True
-    # app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000)
