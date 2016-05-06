@@ -16,7 +16,7 @@ from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-engine = create_engine('sqlite:///findYourTourGuide.db')
+engine = create_engine('postgresql://tourguide:tourGuideLinuxDina@localhost/findYourTourGuide')
 Base.metadata.bind = engine
 session = scoped_session(sessionmaker(bind=engine))
 app = Flask(__name__)
@@ -1053,4 +1053,4 @@ if __name__ == '__main__':
     # If debug is enabled, the server will reload itself each time it notices a
     # code change.
     app.debug = True
-    app.run(host='0.0.0.0', port=5000)
+    # app.run(host='0.0.0.0', port=5000)

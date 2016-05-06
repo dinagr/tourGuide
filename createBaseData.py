@@ -8,7 +8,7 @@ from random import randint
 import datetime
 import random
 
-engine = create_engine('sqlite:///findYourTourGuide.db')
+engine = create_engine('postgresql://tourguide:tourGuideLinuxDina@localhost/findYourTourGuide')
 
 Base.metadata.bind = engine
 

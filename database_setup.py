@@ -247,6 +247,6 @@ class Reviews(Base):
             }
 
 
-engine = create_engine('sqlite:///findYourTourGuide.db')
+engine = create_engine('postgresql://tourguide:tourGuideLinuxDina@localhost/findYourTourGuide')
 
 Base.metadata.create_all(engine)
