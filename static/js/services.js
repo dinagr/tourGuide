@@ -77,11 +77,12 @@ TourGuideApp.service('AuthenticationService', ['$http', '$location',
     /**and gethis credential by email**/
     obj.sendMyCredentials = function (email) {
         obj.message = '';
+	obj.successMessage = '';
         return  $http.post('/getMyCredentials', {email : email})
                 .success(function(results) 
                 {   
                     if (results.emailSent){
-                        obj.message = 'An email with your credentials was sent to you';
+                       obj.successMessage = 'An email with your credentials was sent to you';
                     }
                     if (results.result != 'success'){
                         obj.message = results.result;
@@ -166,13 +167,14 @@ TourGuideApp.service('guideService', ['$http', '$location', 'searchGuides',
                 {   
                     if (results.result == 'success')
                     {
-                        var userId = results.userId;
-                        $location.path("/guideAddLanguange/"+userId);
+                        /*var userId = results.userId;
+                        $location.path("/guideAddLanguange/"+userId);*/
                     }
                     else 
                     {
-                        obj.message = results.result;
+                       /* obj.message = results.result;*/
                     }
+		   console.log("new guide details finished in succes");
                 }).error(function(error) 
                 {
                     obj.message = 'something went wrong! please try again';
@@ -187,7 +189,9 @@ TourGuideApp.service('guideService', ['$http', '$location', 'searchGuides',
                             transformRequest: angular.identity
                 }).success(function(results) 
                 {   
-                    obj.message2 = results.result;
+		    if (results.result != 'success') {
+                    	obj.message2 = results.result;
+		    }
                 }).error(function(error) 
                 {
                     obj.message2 = 'something went wrong while saving the photo! please try again';
@@ -201,8 +205,10 @@ TourGuideApp.service('guideService', ['$http', '$location', 'searchGuides',
                             headers: {'Content-Type': undefined},
                             transformRequest: angular.identity
                 }).success(function(results) 
-                {   
-                    obj.message2 = results.result;
+                {
+                    if (results.result != 'success') {
+                        obj.message = results.result;
+                    }
                 }).error(function(error) 
                 {
                     obj.message2 = 'something went wrong while saving the photo! please try again';
@@ -252,62 +258,11 @@ TourGuideApp.service('guideService', ['$http', '$location', 'searchGuides',
             });
         };
 
-    /**Get the list of all countries in the DB**/
-    obj.getCountriesList = function () {
-        obj.message = '';
-        return  $http.get('/getAllCountries')
-                .success(function(data)
-                {
-                    obj.countries = data.countries;
-                }).error(function(data)
-                {
-                    obj.message = 'something went wrong! please try again'; 
-                });
-        };
-
-    /**Get the full country details from the Country table for a specific country**/
-    obj.getCountryObject = function (country) {
-        obj.message = '';
-        return  $http.get('/getCountry/' + country )
-                .success(function(data)
-                {
-                    obj.country = data.country;
-                }).error(function(data)
-                {
-                    obj.message = 'something went wrong! please try again'; 
-                });
-        };
-
-    /**Get the full city details from the Cities table for a specific city**/
-    obj.getCityObject = function (city) {
-        obj.message = '';
-        return  $http.get('/getCity/' + city )
-                .success(function(data)
-                {
-                    obj.city = data.city;
-                }).error(function(data)
-                {
-                    obj.message = 'something went wrong! please try again'; 
-                });
-        }; 
-
-    /**Get all the cities from the DB for a specific country**/
-    obj.getCitiesList = function (country) {
-        obj.message = '';
-        return  $http.get('/getCitiesByCountry/'+country)
-                .success(function(data)
-                {
-                    obj.cities = data.cities;
-                }).error(function(data)
-                {
-                    obj.message = 'something went wrong! please try again'; 
-                });
-        }; 
 
     /**Remove a location from the list of locations in which the guide can guide in**/
-    obj.removeGuideTourLocation = function (country, city, userId) {
+    obj.removeGuideTourLocation = function (location, userId) {
         obj.message = '';
-        return  $http.post('/removeLocation', {country: country, city: city, userId: userId})
+        return  $http.post('/removeLocation', {location: location, userId: userId})
                 .error(function(error) 
                 {
                     obj.message = 'something went wrong! please try again'; 
@@ -329,9 +284,9 @@ TourGuideApp.service('guideService', ['$http', '$location', 'searchGuides',
         };    
 
     /**Add a new location to the list of locations in which the guide can guide in**/
-    obj.addGuideLocations = function (country, city, userId) {
+    obj.addGuideLocations = function (location, userId) {
         obj.message = '';
-        return  $http.post('/addCountriesCities',{country: country ,city: city ,userId: userId})
+        return  $http.post('/addLocation',{location: location ,userId: userId})
                 .success(function(data)
                 {
                     if (data.result != 'success'){
@@ -354,16 +309,17 @@ TourGuideApp.service('guideService', ['$http', '$location', 'searchGuides',
                     obj.firstName = data.firstName;
                     obj.lastName = data.lastName;
                     obj.age = data.age;
-                    obj.years = data.years;
-                    obj.certificate = data.certificate;
-                    obj.desc = data.desc;
-                    obj.photo = data.photo;
+                    obj.years = data.years[0];
+                    obj.certificate = data.certificate[0];
+                    obj.desc = data.desc[0];
+		    obj.photo = data.photo[0];
                     obj.email = data.email;
                 }).error(function(data)
                 {
                     obj.message = 'something went wrong! please try again';
                 });
         };
+
 
     /**Get all the reviews that were written to a guide**/
      obj.getGuideReviews = function (userId) {
@@ -372,6 +328,7 @@ TourGuideApp.service('guideService', ['$http', '$location', 'searchGuides',
                 .success(function(data)
                 {
                     obj.reviews = data.reviews;
+		    obj.users = data.users;
 
                 }).error(function(data)
                 {
@@ -392,14 +349,16 @@ TourGuideApp.service('guideService', ['$http', '$location', 'searchGuides',
 
     /**Update guide details**/
     /**firstname, lastname, email, certificate, age, years of experience and description**/
-    obj.updateProfile = function (firstName, lastName, email, certificate, age, year, descrip, userId) {
+    obj.updateProfile = function (firstName, lastName, email, certificate, year, descrip, age, userId) {
         obj.message = '';
+	console.log("Start update profile");
         return  $http.post('/updateGuideDetails',{firstName: firstName ,lastName: lastName
                 ,email: email, certificate: certificate, age: age, years: year,
                  descrip: descrip, userId: userId})
                 .success(function(results) 
                 {   
-                    $location.path('/guideProfile/' + userId);
+		    console.log("finish update profile");
+                    /*$location.path('/guideProfile/' + userId);*/
            
                 }).error(function(error) 
                 {
@@ -494,12 +453,13 @@ TourGuideApp.service('privateChat', ['$http', function ($http) {
     /**Write a private message to a user**/
     obj.AddPrivateMessage = function (msgContent, msgTitle, writer, receiver) {
         obj.message = '';
+	obj.successMessage = '';
         return  $http.post('/writeMessage',{msgContent: msgContent ,msgTitle: msgTitle 
                 ,writer: writer, receiver: receiver})
                 .success(function(data)
                 {
                    if (data.emailSent){
-                        obj.message = 'An email regarding the message was sent to the user!'
+                        obj.successMessage = 'An email regarding the message was sent to the user!'
                    }
                 })
                 .error(function(error) 
@@ -555,9 +515,9 @@ TourGuideApp.service('searchGuides', ['$http', function ($http) {
 
     /**Get all the guides that match the search**/
     /**The user can search by - country, city, dates and language**/
-    obj.advancedSearchGuides = function (country, city, language, fromDate, toDate) {
+    obj.advancedSearchGuides = function (location, language, fromDate, toDate) {
         obj.message = '';
-        return  $http.get('/advancedSearch/' + country + '/' + city + '/' + language 
+        return  $http.get('/advancedSearch/' + location + '/' + language 
                 + '/' + fromDate + '/' + toDate)
                 .success(function(results) 
                 {   

@@ -19,12 +19,6 @@ class User(Base):
     userName = Column(String(250), nullable=False)
     password = Column(String(250), nullable=False)
     userType = Column(String(1))
-#    UserPropertyAssigned = relationship("userPropertyAssigned", cascade="all,delete")
-#    GuideBusyDates = relationship("guideBusyDates", cascade="all,delete")
-#    GuideLanguage = relationship("guideLanguage", cascade="all,delete")
-#    UserPropertyAssigned = relationship("userPropertyAssigned", cascade="all,delete")
-#    PrivateChat = relationship("privateChat", cascade="all,delete")
-#    Reviews = relationship("reviews", cascade="all,delete")
 
     @property
     def serialize(self):
@@ -38,18 +32,6 @@ class User(Base):
             'password' : self.password,
             'userType' : self.userType
             }
-
-    def is_active(self):
-        """True, as all users are active."""
-        return True
-
-    def is_authenticated(self):
-        """Return True if the user is authenticated."""
-        return True
-
-    def is_anonymous(self):
-        """False, as anonymous users aren't supported."""
-        return False
 
 
 class Properties(Base):
@@ -71,12 +53,11 @@ class UserPropertyAssigned(Base):
 
     propertyId = Column(Integer, primary_key=True)
     userId = Column(Integer, primary_key=True)
-    propertyValue = Column(String(50), nullable=False)
+    propertyValue = Column(String, nullable=False)
     user_id = Column(Integer, ForeignKey('user.id'))
-    user = relationship(User)# , backref=backref("items", cascade="all, delete-orphan"))
+    user = relationship(User)
     property_id = Column(Integer, ForeignKey('properties.id'))
     properties = relationship(Properties) 
-        # ,backref=backref("userPropertyAssigned", cascade="all, delete-orphan"))
 
     @property
     def serialize(self):
@@ -111,8 +92,7 @@ class GuideLocations(Base):
     __tablename__ = 'guideLocations'
 
     userId = Column(Integer, primary_key=True)
-    country = Column(String, primary_key=True)
-    city = Column(String, primary_key=True)
+    location = Column(String, primary_key=True)
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
 
@@ -122,56 +102,8 @@ class GuideLocations(Base):
         
         return{
             'userId' : self.userId,
-            'country' : self.country,
-            'city' : self.city
-            }
-
-class Country(Base):
-    __tablename__ = 'country'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String, nullable=False)
-
-
-    @property
-    def serialize(self):
-        
-        return{
-            'id' : self.id,
-            'name' : self.name
-            }
-
-
-class Cities(Base):
-    __tablename__ = 'cities'
-
-    id = Column(Integer, primary_key=True)
-    city = Column(String, nullable=False)
-    countryId = Column(Integer, nullable=False)
-    country_id = Column(Integer, ForeignKey('country.id'))
-    country = relationship(Country)
-
-
-    @property
-    def serialize(self):
-        
-        return{
-            'countryId' : self.countryId,
-            'city' : self.city
-            }
-
-# class Languages(Base):
-    """    __tablename__ = 'languages'
-
-    language = Column(String, primary_key=True)
-
-
-    @property
-    def serialize(self):
-        
-        return{
-            'language' : self.language
-            }"""
+            'location' : self.location
+	    }
 
 class GuideLanguage(Base):
     __tablename__ = 'guideLanguage'
@@ -180,8 +112,6 @@ class GuideLanguage(Base):
     languageName = Column(String, primary_key=True)
     user_id = Column(Integer, ForeignKey('user.id'))
     user = relationship(User)
-#    language_id = Column(String, ForeignKey('Languages.language'))
-#    language = relationship(Languages)
 
     @property
     def serialize(self):

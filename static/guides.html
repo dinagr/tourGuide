@@ -3,6 +3,7 @@
 	<message></message>
 	<div class="row" ng-repeat="guide in guides | orderBy:'-grade'">
 		<div class="col-xs-12">
+		   <a ng-href="#/guideProfile/{{guide.userId}}">
 			<div class="thumbnail form-button">
 				<div class="row">
 					<div class="col-xs-4">
@@ -16,12 +17,12 @@
 					    	<span class = "review-time">(Out of {{guide.numOfReviews}} reviews)</span> 
 					    </p>
 					    <p ng-show="!guide.grade" class="review-time">No reviews</p>
-					    <a ng-href="#/guideProfile/{{guide.userId}}"><img ng-src="static/uploads/{{guide.photo}}" alt="static/style/noImage.png" class="img-circle" style="width: auto; height: auto; max-width:10vw; max-height:10vw;"></a>	     
+					    <img ng-src="static/uploads/{{guide.photo}}" alt="static/style/noImage.png" class="img-circle" style="width: auto; height: auto; max-width:10vw; max-height:10vw;">	     
 					</div>
 					<div class="col-xs-4">
 						<span class="profile-mini-header">Tour locations</span>
 						<p ng-repeat="loc in guide.locs | limitTo:4" class="profile" ng-show="guide.locs.length > 0">
-						  	{{loc.city}},{{loc.country}}
+						  	{{loc.location}}
 						</p>
 						<p class="profile" ng-show="locs.length == 0">
 						  	No locations were entered
@@ -37,6 +38,7 @@
 						</p>
 					</div>
 				</div>
+			    </a>
 			</div>		
 		</div>
 	</div>

@@ -89,7 +89,7 @@ TourGuideApp.config(function($routeProvider) {
             controller: 'advancedSearch'
         }).
 
-        when('/advancedSearch/:country/:city/:language/:fromDate/:toDate', {
+        when('/advancedSearch/:location/:language/:fromDate/:toDate', {
             templateUrl: 'static/advancedSearch.html',
             controller: 'advancedSearchResults'
         }).

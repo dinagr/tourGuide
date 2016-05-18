@@ -6,22 +6,11 @@
 			<form ng-submit="submitCountryCity()">
 				<h4 class="formHeadline">Add your tour locations</h4>
 				<div class="form-group">
-					<label for="country">Country:</label>
-					<select class="form-control" ng-change="getCitiesByCountry(country)" ng-model="country" ng-options="x.name for x in countries | orderBy:'name'">
-					</select>
-				</div>
-				<div class="form-group">
-					<label for="city">City:</label>
-					<select class="form-control" ng-show="cities" ng-model="city" ng-options="x.city for x in cities | orderBy:'city'">
-						<option value="">All cities</option>
-					</select>
-					<select class="form-control" ng-show="!cities">
-						<option> </option>
-						<option>No cities - choose a country first</option>
-					</select>
+					<label for="country">Location:</label>
+					<input type="text" class="form-control" required ng-model="tourLocation" googleplace>
 				</div>
 				<div class="form-button">
-					<button type="submit" value="create" class="btn btn-primary" ng-disabled='!country'>Add</button>
+					<button type="submit" value="create" class="btn btn-primary">Add</button>
 				</div>
 				</br>
 				<div class="form-button">
@@ -36,16 +25,15 @@
 				<table class="table centered-table">
 					<thead>
 						<tr>
-							<th class="centered-table">Country</th>
-							<th class="centered-table">city</th>
+							<th class="centered-table">Location</th>
+							<th class="centered-table">Remove Location</th>
 						</tr>
 					</thead>
 					<tbody>
-						<tr ng-repeat="loc in locations | orderBy:'loc.country'">
-							<td>{{loc.country}}</td>
-							<td ng-show="loc.city">
-								{{loc.city}}
-								<span ng-click="removeLocation(loc.country,loc.city)" class="glyphicon glyphicon-remove">
+						<tr ng-repeat="loc in locations | orderBy:'loc.location'">
+							<td>{{loc.location}}</td>
+							<td>
+								<span ng-click="removeLocation(loc.location)" class="glyphicon glyphicon-remove">
 								</span>
 							</td>
 						</tr>

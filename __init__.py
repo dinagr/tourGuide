@@ -9,7 +9,6 @@ from flask import session as login_session
 import string
 import requests
 import json 
-from flask.ext.login import LoginManager, UserMixin, login_required
 from werkzeug import secure_filename
 import smtplib
 from datetime import datetime
@@ -18,14 +17,44 @@ from email.mime.text import MIMEText
 
 engine = create_engine('postgresql://tourguide:tourGuideLinuxDina@localhost/findYourTourGuide')
 Base.metadata.bind = engine
-session = scoped_session(sessionmaker(bind=engine))
+session = scoped_session(sessionmaker(bind=engine, autoflush=False))
 app = Flask(__name__)
 app.db = session
 
+import createBaseData
+
 # Define where guide photos will be saved and which type of fyles are allowed
-UPLOAD_FOLDER = 'static/uploads'
+full_path_to_upload_folder = os.path.join('/var/www/tourGuide/tourGuide/','static/uploads')
+UPLOAD_FOLDER = full_path_to_upload_folder
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+userPhotos =[]
+
+"""users = app.db.query(User).all()
+for u in users:
+	app.db.delete(u)
+	app.db.commit()
+props = app.db.query(UserPropertyAssigned).all()
+for p in props:
+	app.db.delete(p)
+	app.db.commit()
+langs = app.db.query(GuideLocations).all()
+for l in langs:
+	app.db.delete(l)
+	app.db.commit()
+locs = app.db.query(GuideLanguage).all()
+for l in locs:
+	app.db.delete(l)
+	app.db.commit()"""
+
+"""users = app.db.query(User).all()
+for u in users:
+	print(u.id, u.userName, u.firstName, u.lastName, u.email, u.userType)
+	props = app.db.query(Properties.propertyName ,UserPropertyAssigned.propertyValue).\
+	filter(UserPropertyAssigned.userId == u.id, Properties.id == UserPropertyAssigned.propertyId).all()
+	for p in props:
+		print(p)"""
+	
 
 # Check if fily is from allowed type or with allowed file name
 def allowed_file(filename):
@@ -60,8 +89,10 @@ def send_html_email(recipient, html, subject):
 # Check if user allready exist
 def isNewUser(username, email):
   if app.db.query(User).filter(User.userName == username).all():
+    session.remove()
     return "There is allready a user with the user name %s, Please choose another user name!" %username
   if app.db.query(User).filter(User.email == email).all():
+    session.remove()
     return "There is allready a user with the email %s!" %email
 
 # Send a welcome email to new users of type traveller
@@ -76,7 +107,7 @@ def sendWelcomeTravelerEmail(email, firstName):
       </p> 
       <p style="font-size:14px;">
         Welcome to  
-        <a href="http://localhost:5000/#/" style="font-weight: bold;">
+        <a href="http://ec2-52-36-140-206.us-west-2.compute.amazonaws.com/#/" style="font-weight: bold;">
           FindYourTourGuide
         </a>
       </p>
@@ -110,7 +141,7 @@ def sendWelcomeGuideEmail(email, firstName):
       </p> 
       <p style="font-size:14px;">
         Welcome to  
-        <a href="http://localhost:5000/#/" style="font-weight: bold;">
+        <a href="http://ec2-52-36-140-206.us-west-2.compute.amazonaws.com/#/" style="font-weight: bold;">
           FindYourTourGuide
         </a>
       </p>
@@ -205,10 +236,10 @@ def newGuide():
           ,password = json_data['password'], userType = 'G')
       app.db.add(newUser)
       app.db.commit() 
-      session.remove()
       status = 'success'
       sendWelcomeGuideEmail(json_data['email'], json_data['firstName'])
       user = app.db.query(User).filter(User.email == json_data['email']).one()
+      session.remove()
       return jsonify({'result': status, 'userId': user.id})    
     except:
       status = 'An error encountered while creating the user, please try again later'
@@ -225,14 +256,18 @@ def loginUser():
       user = app.db.query(User).filter(User.userName == json_data['userName']).one()
       login_session['username'] = json_data['userName']
       login_session['user_id'] = user.id
+      session.remove()
       return jsonify({'userName': login_session['username'], 
         'userId': login_session['user_id'], 'result': status})  
     else:
       if not app.db.query(User).filter(User.userName == json_data['userName']).scalar(): 
+	session.remove()
         return jsonify({'result': 'There is no user with this user name!'})
       else:
-        return jsonify({'result': 'There user name and the pasword don\'t match!'})
+        session.remove()
+	return jsonify({'result': 'There user name and the pasword don\'t match!'})
   except:
+    session.remove()
     status = 'An error encountered while creating the user, please try again later'
     return jsonify({'result': status})
 
@@ -266,7 +301,7 @@ def getMyCredentials():
           </p> 
           <p style="font-size:14px;">
             These are your credentials to 
-            <a href="http://localhost:5000/#/" style="font-weight: bold;">
+            <a href="http://ec2-52-36-140-206.us-west-2.compute.amazonaws.com/#/" style="font-weight: bold;">
               FindYourTourGuide
             </a>
           </p>
@@ -294,8 +329,10 @@ def getMyCredentials():
       status = 'success'
     else:
       status = 'There is no user with this email address'
+      session.remove()
       return jsonify({'result': status})
   except:
+    session.remove()
     status = 'An error encountered while searching the user, please try again later'
     return jsonify({'result': status})
   return jsonify({'result': status, 'emailSent': emailResult})
@@ -315,99 +352,145 @@ def getUserLogin():
   status = ''
   if login_session:
     status = 'true'
-    user = app.db.query(User).filter(User.id == login_session['user_id']).one()
-    return jsonify({'result': status, 'userName': login_session['username'],
-      'userId': login_session['user_id'], 'userType': user.userType})
+    if app.db.query(User).filter(User.id == login_session['user_id']).scalar():
+	    user = app.db.query(User).filter(User.id == login_session['user_id']).one()
+	    session.remove()
+    	    return jsonify({'result': status, 'userName': login_session['username'],
+      	    'userId': login_session['user_id'], 'userType': user.userType})
+    else:
+	session.remove()
+	status = 'false'
   else:
+    session.remove()
     status = 'false'
   return jsonify({'result': status})
-
-# Save a new photo for guide profile
-@app.route('/savePhotoGuide/<int:user_id>/', methods=['POST','GET'])
-def savePhotoGuide(user_id):
-  if request.method == 'POST':
-    if request.files['picture_file']:
-      filename = upload_file(user_id)
-      savedFile = str(filename)
-      newPhotoPropertyAssigned = UserPropertyAssigned(
-        propertyId = photoProp.id, userId = user_id, propertyValue = savedFile)
-      app.db.add(newPhotoPropertyAssigned)
-      app.db.commit()
 
 # Save guide details - age, certificate, years of experience and description
 @app.route('/newGuideDetails', methods=['POST'])
 def newGuideDetails():
-    json_data = request.json
-    status = ''
-    user_id = json_data['userId']
-    if not app.db.query(UserPropertyAssigned).filter(UserPropertyAssigned.userId == user_id,\
-      UserPropertyAssigned.propertyId != getPropPhoto()).first():
-      try:
-        newDescriptionPropertyAssigned = UserPropertyAssigned(
-          propertyId = getPropDescription(), userId = user_id, propertyValue = json_data['description'])
-        newAgePropertyAssigned = UserPropertyAssigned(
-          propertyId = getPropAge(), userId = user_id, propertyValue = json_data['age'])
+  json_data = request.json
+  status = ''
+  user_id = json_data['userId']
+  print(user_id)
+  try:
+      if not app.db.query(UserPropertyAssigned).filter(UserPropertyAssigned.userId == user_id,\
+     	 UserPropertyAssigned.propertyId != getPropDescription()).first():
+		print("I start")
+        	newDescriptionPropertyAssigned = UserPropertyAssigned(
+          		propertyId = getPropDescription(), userId = user_id, propertyValue = json_data['description'])
 
-        newYearsOfExperiencePropertyAssigned = UserPropertyAssigned(
-          propertyId = getPropyearsOfExperience(), userId = user_id, propertyValue = json_data['yearsOfExperience'])
+        	newAgePropertyAssigned = UserPropertyAssigned(
+          		propertyId = getPropAge(), userId = user_id, propertyValue = json_data['age'])
 
-        newCertificatePropertyAssigned = UserPropertyAssigned(
-          propertyId = getPropcertificate(), userId = user_id, propertyValue = json_data['certificate'])
+        	newYearsOfExperiencePropertyAssigned = UserPropertyAssigned(
+          		propertyId = getPropyearsOfExperience(), userId = user_id, propertyValue = json_data['yearsOfExperience'])
 
-        app.db.add(newDescriptionPropertyAssigned)
-        app.db.add(newAgePropertyAssigned)
-        app.db.add(newYearsOfExperiencePropertyAssigned)
-        app.db.add(newCertificatePropertyAssigned)
-        app.db.commit()
-        status = 'success'
-        session.remove()
-        return jsonify({'result': status, 'userId': user_id})    
-      except:
-          status = 'An error encountered while creating the user, please try again later'
-    else:
-      status = 'These details are allready defined for this user!'
-    return jsonify({'result': status})
+        	newCertificatePropertyAssigned = UserPropertyAssigned(
+          		propertyId = getPropcertificate(), userId = user_id, propertyValue = json_data['certificate'])
+        	
+		app.db.add(newDescriptionPropertyAssigned)
+        	app.db.add(newAgePropertyAssigned)
+        	app.db.add(newYearsOfExperiencePropertyAssigned)
+        	app.db.add(newCertificatePropertyAssigned)
+
+        	app.db.commit()
+        	status = 'success'
+        	session.remove()
+		print("I finish")
+        	return jsonify({'result': status, 'userId': user_id})    
+      else:
+	    status = 'These details are allready defined for this user!'
+  except:
+        status = 'An error encountered while creating the user, please try again later'
+  session.remove()
+  return jsonify({'result': status})
 
 # Edit and update guide details
 @app.route('/updateGuideDetails', methods=['POST'])
 def updateGuideDetails():
     json_data = request.json
     status = ''
-    user = app.db.query(User).filter(User.id == json_data['userId']).one()
-  
-    certificate = app.db.query(UserPropertyAssigned).\
-    filter(UserPropertyAssigned.propertyId == getPropcertificate()\
-      ,UserPropertyAssigned.userId == json_data['userId']).one()
+    try:
+    	user = app.db.query(User).filter(User.id == json_data['userId']).one()
+        
+	if app.db.query(UserPropertyAssigned).\
+        filter(UserPropertyAssigned.propertyId == getPropcertificate()\
+        ,UserPropertyAssigned.userId == json_data['userId']).scalar():
 
-    yearsOfExperience = app.db.query(UserPropertyAssigned).\
-    filter(UserPropertyAssigned.propertyId == getPropyearsOfExperience()\
-      ,UserPropertyAssigned.userId == json_data['userId']).one()
+    		certificate = app.db.query(UserPropertyAssigned).\
+    		filter(UserPropertyAssigned.propertyId == getPropcertificate()\
+        	,UserPropertyAssigned.userId == json_data['userId']).one()
+		certificate.propertyValue = json_data['certificate']
+	else:
+		certificate = UserPropertyAssigned(
+                        propertyId = getPropcertificate(), userId = json_data['userId'], propertyValue = json_data['certificate'])
 
-    description = app.db.query(UserPropertyAssigned).\
-    filter(UserPropertyAssigned.propertyId == getPropDescription()\
-      ,UserPropertyAssigned.userId == json_data['userId']).one()
+	if app.db.query(UserPropertyAssigned).\
+        filter(UserPropertyAssigned.propertyId == getPropAge()\
+        ,UserPropertyAssigned.userId == json_data['userId']).scalar():
 
-    emailExist = app.db.query(User).\
-      filter(json_data['email'] == User.email, User.id != json_data['userId']).scalar()
+                age = app.db.query(UserPropertyAssigned).\
+                filter(UserPropertyAssigned.propertyId == getPropAge()\
+                ,UserPropertyAssigned.userId == json_data['userId']).one()
+                age.propertyValue = json_data['age']
+        else:
+                age = UserPropertyAssigned(
+                        propertyId = getPropAge(), userId = json_data['userId'], propertyValue = json_data['age'])
 
-    if emailExist:
-      status = 'The email is allrdeay assigned to another user!'
-      return jsonify({'result': status})
+	
+	if app.db.query(UserPropertyAssigned).\
+        filter(UserPropertyAssigned.propertyId == getPropyearsOfExperience()\
+        ,UserPropertyAssigned.userId == json_data['userId']).scalar():
+
+    		yearsOfExperience = app.db.query(UserPropertyAssigned).\
+        	filter(UserPropertyAssigned.propertyId == getPropyearsOfExperience()\
+        	,UserPropertyAssigned.userId == json_data['userId']).one()
+		yearsOfExperience.propertyValue = json_data['years']
+	else:
+		yearsOfExperience = UserPropertyAssigned(
+                        propertyId = getPropyearsOfExperience(), userId = json_data['userId'], propertyValue = json_data['years'])
+
+	if  app.db.query(UserPropertyAssigned).\
+        filter(UserPropertyAssigned.propertyId == getPropDescription()\
+        ,UserPropertyAssigned.userId == json_data['userId']).scalar():
+
+        	description = app.db.query(UserPropertyAssigned).\
+        	filter(UserPropertyAssigned.propertyId == getPropDescription()\
+        	,UserPropertyAssigned.userId == json_data['userId']).one()
+		description.propertyValue = json_data['descrip']
+	else:
+		description = UserPropertyAssigned(
+                        propertyId = getPropDescription(), userId = json_data['userId'], propertyValue = json_data['descrip'])
+		
+
+        emailExist = app.db.query(User).\
+        filter(json_data['email'] == User.email, User.id != json_data['userId']).scalar()
+
+        if emailExist:
+      		status = 'The email is allrdeay assigned to another user!'
+      		return jsonify({'result': status})
       
-    user.firstName = json_data['firstName']
-    user.lastName = json_data['lastName']
-    user.email = json_data['email']
-    certificate.propertyValue = json_data['certificate']
-    yearsOfExperience.propertyValue = json_data['years']
-    description.propertyValue = json_data['descrip']
-    app.db.merge(user)
-    app.db.merge(certificate)
-    app.db.merge(yearsOfExperience)
-    app.db.merge(description)
-    app.db.commit()            
-    session.remove()
-
-    status = 'An error encountered while updating the user data, please try again later'
+        user.firstName = json_data['firstName']
+        user.lastName = json_data['lastName']
+        user.email = json_data['email']
+	if json_data['email'] or json_data['firstName'] or json_data['lastName']:
+        	app.db.add(user)
+		app.db.commit()
+	if json_data['certificate']:
+		app.db.add(certificate)
+	if json_data['years']:
+		app.db.merge(yearsOfExperience)
+	if  json_data['descrip']:
+		app.db.merge(description)
+	if json_data['age']:
+		app.db.merge(age)
+        app.db.commit()            
+	usersData = app.db.query(User.id, User.userName, User.firstName, User.lastName, UserPropertyAssigned.propertyValue, Properties.propertyName).\
+	 filter(User.id == UserPropertyAssigned.userId, UserPropertyAssigned.propertyId == Properties.id, User.id == json_data['userId']).all()
+	session.remove()
+    except:
+	session.remove()
+    	status = 'An error encountered while updating the user data, please try again later'
     return jsonify({'result': status})
 
 
@@ -416,21 +499,28 @@ def uploadFile(user_id):
   file = request.files['file']
   status = ''
   if not app.db.query(UserPropertyAssigned).filter(UserPropertyAssigned.userId == user_id,\
-      UserPropertyAssigned.propertyId == getPropPhoto()).first():
-    try:
-      if allowed_file(file.filename):
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
-        newPhotoPropertyAssigned = UserPropertyAssigned(
-            propertyId = getPropPhoto(), userId = user_id, propertyValue = file.filename)
-        app.db.add(newPhotoPropertyAssigned)
-        app.db.commit()
-        session.remove()
-        status = 'success'
-      status = 'Please choose a file from different type'
-    except:
-      status = 'An error encountered while saving the user photo, please try again later'
+     UserPropertyAssigned.propertyId == getPropPhoto()).first():
+  	try:
+            if allowed_file(file.filename):
+        	file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+		print("I save photo")
+        	newPhotoPropertyAssigned = UserPropertyAssigned(
+            	propertyId = getPropPhoto(), userId = user_id, propertyValue = file.filename)
+        	app.db.add(newPhotoPropertyAssigned)
+        	app.db.commit()
+		print("I save th photo in the DB")
+        	session.remove()
+      		status = 'success'
+		print("I finish")
+	    else:
+		session.remove()
+        	status = 'Please choose a file from type jpg / jpeg / png'
+        except:
+	    session.remove()
+     	    status = 'An error encountered while saving the user photo, please try again later'
   else:
-    status = 'There is allready a photo for this guide'
+	session.remove()
+	status = 'There is allready a photo for this guide'
   return jsonify({'result': status})
 
 # Change and update guide photo
@@ -438,17 +528,30 @@ def uploadFile(user_id):
 def updateFile(user_id):
     file = request.files['file']
     status = ''
-  
-    userPhoto = app.db.query(UserPropertyAssigned).filter(UserPropertyAssigned.userId == user_id,\
-      UserPropertyAssigned.propertyId == getPropPhoto()).one()
-    if allowed_file(file.filename):
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
-        userPhoto.propertyValue = file.filename
-        app.db.merge(userPhoto)
-        app.db.commit()
-        session.remove()
-        status = 'success'
+    try:  
+	print("updating file")
+    	userPhoto = app.db.query(UserPropertyAssigned).filter(UserPropertyAssigned.userId == user_id,\
+      		UserPropertyAssigned.propertyId == getPropPhoto()).one()
+    	if allowed_file(file.filename):
+		print("file name is ok")
+	        file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
+		# os.remove(os.path.join(app.config['UPLOAD_FOLDER'], userPhoto.propertyValue))
+		print("I saved file")
+        	userPhoto.propertyValue = file.filename
+        	app.db.merge(userPhoto)
+		print("I added file to session")
+        	app.db.commit()
+        	session.remove()
+		print("finish updating file")
+        	status = 'success'
+	else:
+                session.remove()
+		status = 'Please choose a file from type from type jpg / jpeg / png'
+    except:
+	session.remove()
+        status = 'An error encountered while updating the photo, please try again later'
     return jsonify({'result': status})
+
 
 # Add a new language to the list of languages in which the user can guide
 @app.route('/addLanguange', methods=['POST'])
@@ -485,6 +588,7 @@ def removeLanguage():
       session.remove()
       status = 'success'
   except:
+	session.remove()
         status = 'An error encountered while updating the user, please try again later'
   return jsonify({'result': status})  
 
@@ -499,67 +603,19 @@ def getLanguanges(user_id):
   except:
       status = 'An error encountered while geting the data, please try again later'
       return jsonify({'result': status})
+      session.remove()
   return jsonify(languages=[i.serialize for i in languages]) 
 
-# Get all countries from the DB
-@app.route('/getAllCountries', methods=['GET'])
-def getAllCountries():
-  status = ''
-  try:
-    countries = app.db.query(Country).all()
-    session.remove()
-  except:
-      status = 'An error encountered while geting the data, please try again later'
-      return jsonify({'result': status})
-  return jsonify(countries=[i.serialize for i in countries]) 
-
-# Get all the fileds from the Country table for a specific country
-@app.route('/getCountry/<string:country_name>', methods=['GET'])
-def getCountry(country_name):
-  status = ''
-  try:
-    country = app.db.query(Country).filter(Country.name == country_name).all()
-    session.remove()
-  except:
-      status = 'An error encountered while geting the data, please try again later'
-      return jsonify({'result': status})
-  return jsonify(country=[i.serialize for i in country]) 
-
-# Get all the fileds from the Cities table for a specific city
-@app.route('/getCity/<string:city_name>', methods=['GET'])
-def getCity(city_name):
-  status = ''
-  try:
-    city = app.db.query(Cities).filter(Cities.city == city_name).all()
-    session.remove()
-  except:
-      status = 'An error encountered while geting the data, please try again later'
-      return jsonify({'result': status})
-  return jsonify(city=[i.serialize for i in city])
-
-# Get all the cities for a specific country from the DB
-@app.route('/getCitiesByCountry/<int:country_id>', methods=['GET'])
-def getCitiesByCountry(country_id):
-  status = ''
-  try:
-    cities = app.db.query(Cities).filter(Cities.countryId == country_id).all()
-  except:
-      status = 'An error encountered while geting the data, please try again later'
-      return jsonify({'result': status})
-  return jsonify(cities=[i.serialize for i in cities])  
-
-# Add a new location to the list of locations in which the guide can guide
-@app.route('/addCountriesCities', methods=['POST'])
-def addCountriesCities():
+# Add a location where the guide performs tours
+@app.route('/addLocation', methods=['POST'])
+def addLocation():
   json_data = request.json
   status = ''
   try:
     hasLocation = app.db.query(GuideLocations).filter(GuideLocations.userId == json_data['userId'],\
-      GuideLocations.country == json_data['country'],\
-      GuideLocations.city == json_data['city']).scalar()
+      GuideLocations.location == json_data['location']).scalar()
     if not hasLocation:
-      newGuideLoc = GuideLocations(userId = json_data['userId'], country = json_data['country'],\
-       city = json_data['city'])
+      newGuideLoc = GuideLocations(userId = json_data['userId'], location = json_data['location'])
       app.db.add(newGuideLoc)
       app.db.commit()
       session.remove()
@@ -568,7 +624,7 @@ def addCountriesCities():
       status = 'You allready chose this location, please choose a new location or continue!'
   except:
     status = 'An error encountered while saving the data, please try again later'
-  return jsonify({'result': status}) 
+  return jsonify({'result': status})
 
 # Remove a location from the list of locations in which the guide can guide
 @app.route('/removeLocation', methods=['POST'])
@@ -577,12 +633,14 @@ def removeLocation():
   status = ''
   try:
     guideLoc = app.db.query(GuideLocations).\
-      filter(GuideLocations.userId == json_data['userId'], GuideLocations.country == json_data['country'], GuideLocations.city == json_data['city']).one()
+      filter(GuideLocations.userId == json_data['userId'],\
+      GuideLocations.location == json_data['location']).one()
     app.db.delete(guideLoc)
     app.db.commit()
     session.remove()
     status = 'success'
   except:
+    session.remove()
     status = 'An error encountered while updaing the user data, please try again later'
   return jsonify({'result': status}) 
 
@@ -595,6 +653,7 @@ def getGuideLocations(user_id):
     guideLocs = app.db.query(GuideLocations).filter(GuideLocations.userId == user_id).all()
     session.remove()
   except:
+    session.remove()
     status = 'An error encountered while geting the data, please try again later'
     return jsonify({'result': status}) 
   return jsonify(guideLocs=[i.serialize for i in guideLocs])
@@ -616,6 +675,7 @@ def ClearBusyDates():
     session.remove()
     status = 'success'
   except:
+    session.remove()
     status = 'An error encountered while updaing the user availability, please try again later'
   return jsonify({'result': status}) 
 
@@ -628,6 +688,7 @@ def getGuideAvailability(user_id):
     guideAvail = app.db.query(GuideBusyDates).filter(GuideBusyDates.userId == user_id).all()
     session.remove()
   except:
+    session.remove()
     status = 'An error encountered while geting the data, please try again later'
     return jsonify({'result': status}) 
   return jsonify(guideAvail=[i.serialize for i in guideAvail])
@@ -658,6 +719,7 @@ def updateGuideAvailability():
       status = 'You allready chose these dates, please choose new dates or continue!'
   except:
     status = 'An error encountered while geting the data, please try again later'
+  session.remove()
   return jsonify({'result': status}) 
 
 # Add a review to a guide
@@ -675,15 +737,16 @@ def addReview():
         status = 'success'
     except:
       status = 'An error accoured while saving the reveiw, please try again later!'
+    session.remove()
     return jsonify({'result': status}) 
 
 # Write a private messgae to a guide
 # An email will be sent to the user saying that there is amessgae waiting for him
 @app.route('/writeMessage', methods=['POST'])
 def writeMessage():
-      json_data = request.json
-      success = ''
-  
+  json_data = request.json
+  success = ''
+  try:
       newChat = PrivateChat(userIdWriter = json_data['writer'], userIdReceiver = json_data['receiver'],
        content = json_data['msgContent'], headline = json_data['msgTitle'])
       app.db.add(newChat)
@@ -699,7 +762,7 @@ def writeMessage():
           </p> 
           <p style="font-size:14px;">
             There is a new message waiting for you in 
-            <a href="http://localhost:5000/#/" style="font-weight: bold;">
+            <a href="http://ec2-52-36-140-206.us-west-2.compute.amazonaws.com/#/" style="font-weight: bold;">
               FindYourTourGuide
             </a>
           </p>
@@ -719,7 +782,10 @@ def writeMessage():
       emailResult = send_html_email(user.email,html, subject)
       session.remove()
       status = 'success'
-      return jsonify({'result': status, 'emailSent': emailResult}) 
+  except:
+	status="An error occurred, please try again later"
+  session.remove()
+  return jsonify({'result': status, 'emailSent': emailResult}) 
 
 # Get all private messages between 2 users
 @app.route('/getMessagesBetweenUsers/<int:user_id1>/<int:user_id2>', methods=['GET'])
@@ -734,6 +800,7 @@ def getMessagesBetweenUsers(user_id1, user_id2):
     return jsonify(chat=[i.serialize for i in chat], user1 = {'userName': user1.userName, 'id': user_id1}
       ,user2 ={'userName': user2.userName, 'id': user_id2})
   except:
+    session.remove()
     status = 'An error accoured while getting the messages, please try again later!'
     return jsonify({'result': status})
 
@@ -744,35 +811,50 @@ def privateChat(user_id):
     users = app.db.query(distinct(User.userName), User.id).\
       filter(User.id.in_([PrivateChat.userIdWriter, PrivateChat.userIdReceiver]) \
       ,or_(PrivateChat.userIdWriter == user_id, PrivateChat.userIdReceiver == user_id))
-    session.remove()
     chatUsers = []  
     for user in users:
       if user.id != user_id:
         chatUsers.append({'userName': user[0], 'id': user[1]})
+    session.remove()
     return jsonify({'chatUsers': chatUsers})
   except:
+    session.remove()
     status = 'An error accoured while getting the messages, please try again later!'
     return jsonify({'result': status})
-
-# Get search results for search by location - city or country
+      
+# Search by location
 @app.route('/search/<string:search_data>/', methods=['GET'])
 def search(search_data):
-    status = ''
-    guides = []
-    checkUsers = []
-    try:
+  status = ''
+  guides = []
+  checkUsers = []
+  try:
       if search_data.find(",") >= 0:
         locations = search_data.split(",")
-      else:
-        locations = search_data.split(" ")
-      for location in locations:
-        users = app.db.query(User).\
+        for location in locations:
+          print(location)
+          users = app.db.query(User).\
           filter(User.userType == 'G', User.id == GuideLocations.userId,\
-          or_(func.lower(GuideLocations.country) == location.lower(),\
-            func.lower(GuideLocations.city) == location.lower()))\
-          .all()
+            func.lower(GuideLocations.location).contains(location.lower())).all()
+          print("locs found")
+          print(users)
         for user in users:
           newUser = True
+          for cu in checkUsers:
+            if user.id == cu.id:
+              newUser = False
+          if newUser:
+            checkUsers.append(user)  
+      else:
+        location = search_data
+        users = app.db.query(User).\
+          filter(User.userType == 'G', User.id == GuideLocations.userId,\
+            func.lower(GuideLocations.location).contains(location.lower())).all()
+        print("locs found for one string")
+        print(users)
+        for user in users:
+          newUser = True
+	  print(user.userName, user.id)
           for cu in checkUsers:
             if user.id == cu.id:
               newUser = False
@@ -792,7 +874,7 @@ def search(search_data):
           if app.db.query(GuideLocations).filter(GuideLocations.userId == user.id).first():
             guideLocs = app.db.query(GuideLocations).filter(GuideLocations.userId == user.id).all()
             for gl in guideLocs:
-              location = {'country': gl.country,'city': gl.city}
+              location = {'location': gl.location}
               locs.append(location) 
 
           if app.db.query(GuideLanguage).filter(GuideLanguage.userId == user.id).first():
@@ -817,42 +899,97 @@ def search(search_data):
 
       status = 'success'  
       session.remove() 
-    except:
+  except:
       status = 'An error encountered while geting the user name and Properties, please try again later'
       return jsonify({'result': status})
-    return jsonify({'guides': guides})
+  return jsonify({'guides': guides})
       
 # Get search results for for advanced search
 # Search by country, city, language and dates
-@app.route('/advancedSearch/<string:country>/<string:city>/<string:language>/<string:fromDate>/<string:toDate>', methods=['GET'])
-def advancedSearch(country,city,language,fromDate,toDate):
+
+@app.route('/advancedSearch/<string:location>/<string:language>/<string:fromDate>/<string:toDate>', methods=['GET'])
+def advancedSearch(location,language,fromDate,toDate):
     status = ''
     guides = []
+    checkUsers = []
     try:
-      if country != 'noCountry' and city != 'noCity' and language != 'noLanguage':
-        users = app.db.query(User).\
-          filter(User.userType == 'G', User.id == GuideLocations.userId, GuideLocations.city == city,\
-          GuideLocations.country == country, GuideLanguage.userId == User.id, GuideLanguage.languageName == language)\
-          .all()
-      if country != 'noCountry' and city != 'noCity' and language == 'noLanguage':
-        users = app.db.query(User).\
-          filter(User.userType == 'G', User.id == GuideLocations.userId, GuideLocations.city == city,\
-          GuideLocations.country == country).all()
-      if country != 'noCountry' and city == 'noCity' and language != 'noLanguage':
-        users = app.db.query(User).\
-          filter(User.userType == 'G', User.id == GuideLocations.userId, GuideLocations.country == country,\
-          GuideLanguage.userId == User.id, GuideLanguage.languageName == language)\
-          .all()
-      if country != 'noCountry' and city == 'noCity' and language == 'noLanguage':
-        users = app.db.query(User).\
-          filter(User.userType == 'G', User.id == GuideLocations.userId,GuideLocations.country == country).all()
-      if country == 'noCountry' and city == 'noCity' and language != 'noLanguage':
-        users = app.db.query(User).\
-          filter(User.userType == 'G', GuideLanguage.userId == User.id, GuideLanguage.languageName == language)\
-          .all()
-      if country == 'noCountry' and city == 'noCity' and language == 'noLanguage':
-        users = app.db.query(User).filter(User.userType == 'G').all()
-      for user in users:
+
+      if location != 'noLocation' and language != 'noLanguage':
+        
+        if location.find(",") >= 0:
+          locations = location.split(",")
+          for location in locations:
+            print(location)
+            users = app.db.query(User).\
+            filter(User.userType == 'G', User.id == GuideLocations.userId,\
+              func.lower(GuideLocations.location).contains(location.lower()),\
+              GuideLanguage.userId == User.id, GuideLanguage.languageName == language).all()
+            print("locs found")
+            print(users)
+          for user in users:
+            newUser = True
+            for cu in checkUsers:
+              if user.id == cu.id:
+                newUser = False
+            if newUser:
+              checkUsers.append(user)  
+        else:
+          users = app.db.query(User).\
+            filter(User.userType == 'G', User.id == GuideLocations.userId,\
+              func.lower(GuideLocations.location).contains(location.lower()),\
+              GuideLanguage.userId == User.id, GuideLanguage.languageName == language).all()
+          print("locs found")
+          print(users)
+          for user in users:
+            newUser = True
+            for cu in checkUsers:
+              if user.id == cu.id:
+                newUser = False
+            if newUser:
+              checkUsers.append(user)
+
+
+      if location != 'noLocation' and language == 'noLanguage':
+        
+        if location.find(",") >= 0:
+          locations = location.split(",")
+          for location in locations:
+            print(location)
+            users = app.db.query(User).\
+            filter(User.userType == 'G', User.id == GuideLocations.userId,\
+              func.lower(GuideLocations.location).contains(location.lower())).all()
+            print("locs found")
+            print(users)
+          for user in users:
+            newUser = True
+            for cu in checkUsers:
+              if user.id == cu.id:
+                newUser = False
+            if newUser:
+              checkUsers.append(user)  
+        else:
+          users = app.db.query(User).\
+            filter(User.userType == 'G', User.id == GuideLocations.userId,\
+              func.lower(GuideLocations.location).contains(location.lower())).all()
+          print("locs found")
+          print(users)
+          for user in users:
+            newUser = True
+            for cu in checkUsers:
+              if user.id == cu.id:
+                newUser = False
+            if newUser:
+              checkUsers.append(user)
+
+      if location == 'noLocation' and language != 'noLanguage':
+        checkUsers = app.db.query(User).\
+          filter(User.userType == 'G', GuideLanguage.userId == User.id,\
+          GuideLanguage.languageName == language).all()
+
+      if location == 'noLocation' and language == 'noLanguage':
+        checkUsers = app.db.query(User).filter(User.userType == 'G').all()
+
+      for user in checkUsers:
         totalGrade = 0
         avgGrade = 0
         numOfReviews = 0
@@ -868,7 +1005,7 @@ def advancedSearch(country,city,language,fromDate,toDate):
             if app.db.query(GuideLocations).filter(GuideLocations.userId == user.id).first():
               guideLocs = app.db.query(GuideLocations).filter(GuideLocations.userId == user.id).all()
               for gl in guideLocs:
-                location = {'country': gl.country,'city': gl.city}
+                location = {'location': gl.location}
                 locs.append(location) 
 
             if app.db.query(GuideLanguage).filter(GuideLanguage.userId == user.id).first():
@@ -913,7 +1050,7 @@ def advancedSearch(country,city,language,fromDate,toDate):
               if app.db.query(GuideLocations).filter(GuideLocations.userId == user.id).first():
                 guideLocs = app.db.query(GuideLocations).filter(GuideLocations.userId == user.id).all()
                 for gl in guideLocs:
-                  location = {'country': gl.country,'city': gl.city}
+                  location = {'location': gl.location}
                   locs.append(location)
 
               if app.db.query(GuideLanguage).filter(GuideLanguage.userId == user.id).first():
@@ -942,7 +1079,7 @@ def advancedSearch(country,city,language,fromDate,toDate):
     except:
       status = 'An error encountered while geting the user name and Properties, please try again later'
       return jsonify({'result': status})
-    return jsonify({'guides': guides})    
+    return jsonify({'guides': guides})
 
 
 # Get guide profile
@@ -950,30 +1087,42 @@ def advancedSearch(country,city,language,fromDate,toDate):
 def getGuideProfile(user_id):
   status = ''
   try:
+    desc = ''
+    age = ''
+    years = ''
+    photo = ''
+    certificate = ''
     user = app.db.query(User).filter(User.id == user_id).one()
-    desc = app.db.query(UserPropertyAssigned).\
-      filter(UserPropertyAssigned.userId == user_id, UserPropertyAssigned.propertyId == getPropDescription()).one() 
-
-    age = app.db.query(UserPropertyAssigned).\
-      filter(UserPropertyAssigned.userId == user_id, UserPropertyAssigned.propertyId == getPropAge()).one()
-
-    years = app.db.query(UserPropertyAssigned).\
-      filter(UserPropertyAssigned.userId == user_id, UserPropertyAssigned.propertyId == getPropyearsOfExperience()).one()
-
-    certificate = app.db.query(UserPropertyAssigned).\
-      filter(UserPropertyAssigned.userId == user_id, UserPropertyAssigned.propertyId == getPropcertificate()).one()
-
-    photo = app.db.query(UserPropertyAssigned).\
-      filter(UserPropertyAssigned.userId == user_id, UserPropertyAssigned.propertyId == getPropPhoto()).one()
+    if app.db.query(UserPropertyAssigned).\
+      filter(UserPropertyAssigned.userId == user_id, UserPropertyAssigned.propertyId == getPropDescription()).first():
+    	desc = app.db.query(UserPropertyAssigned.propertyValue).\
+      	filter(UserPropertyAssigned.userId == user_id, UserPropertyAssigned.propertyId == getPropDescription()).one() 
+    if app.db.query(UserPropertyAssigned).\
+      filter(UserPropertyAssigned.userId == user_id, UserPropertyAssigned.propertyId == getPropAge()).first():
+    	age = app.db.query(UserPropertyAssigned.propertyValue).\
+      	filter(UserPropertyAssigned.userId == user_id, UserPropertyAssigned.propertyId == getPropAge()).one()
+    if app.db.query(UserPropertyAssigned).\
+      filter(UserPropertyAssigned.userId == user_id, UserPropertyAssigned.propertyId == getPropyearsOfExperience()).first():
+    	years = app.db.query(UserPropertyAssigned.propertyValue).\
+      	filter(UserPropertyAssigned.userId == user_id, UserPropertyAssigned.propertyId == getPropyearsOfExperience()).one()
+    if app.db.query(UserPropertyAssigned).\
+      filter(UserPropertyAssigned.userId == user_id, UserPropertyAssigned.propertyId == getPropcertificate()).first():
+    	certificate = app.db.query(UserPropertyAssigned.propertyValue).\
+      	filter(UserPropertyAssigned.userId == user_id, UserPropertyAssigned.propertyId == getPropcertificate()).one()	
+    if  app.db.query(UserPropertyAssigned).\
+      filter(UserPropertyAssigned.userId == user_id, UserPropertyAssigned.propertyId == getPropPhoto()).first():
+    	photo = app.db.query(UserPropertyAssigned.propertyValue).\
+      	filter(UserPropertyAssigned.userId == user_id, UserPropertyAssigned.propertyId == getPropPhoto()).one()
 
     status = 'success'  
     session.remove()
   except:
-    status = 'An error encountered while geting the user name and Properties, please try again later'
+    session.remove()
+    status = 'An error encountered while getting the user name and Properties, please try again later'
     return jsonify({'result': status}) 
-  return jsonify({'firstName': user.firstName, 'lastName': user.lastName,'desc': desc.propertyValue,
-   'age': age.propertyValue, 'years': years.propertyValue, 'certificate': certificate.propertyValue,
-   'email': user.email, 'photo': photo.propertyValue})
+  return jsonify({'firstName': user.firstName, 'lastName': user.lastName,'desc': desc,
+   'age': age, 'years': years, 'certificate': certificate,
+   'email': user.email, 'photo': photo})
 
 # Get all reviews that were written for a guide
 @app.route('/getReviews/<int:user_id>', methods=['GET'])
@@ -981,21 +1130,23 @@ def getReviews(user_id):
   status = ''
   try:
     reviews = app.db.query(Reviews).filter(Reviews.userIdReceiver == user_id).all()
+    users = app.db.query(User).filter(or_(User.id == Reviews.userIdReceiver, User.id == Reviews.userIdWriter)).all()
     status = 'success'
     session.remove()  
   except:
     status = 'An error encountered while geting the guide reviews, please try again later'
     return jsonify({'result': status}) 
-  return jsonify(reviews=[i.serialize for i in reviews])
+  session.remove()
+  return jsonify(reviews=[i.serialize for i in reviews], users=[i.serialize for i in users])
 
 # Get all guides data
 @app.route('/getGuides', methods=['GET'])
 def getGuides():
-  status = ''
-  guides = []
-  try:
+ status = ''
+ guides = []
+ try:
+   if app.db.query(User).filter(User.userType == 'G').first():
     users = app.db.query(User).filter(User.userType == 'G').all()
-
     for user in users:
       totalGrade = 0
       avgGrade = 0
@@ -1013,12 +1164,12 @@ def getGuides():
           UserPropertyAssigned.userId == user.id).one()
         photo = app.db.query(UserPropertyAssigned).\
           filter(UserPropertyAssigned.propertyId == getPropPhoto(),\
-          UserPropertyAssigned.userId == user.id).one() 
+          UserPropertyAssigned.userId == user.id).one()
         
         if app.db.query(GuideLocations).filter(GuideLocations.userId == user.id).first():
           guideLocs = app.db.query(GuideLocations).filter(GuideLocations.userId == user.id).all()
           for gl in guideLocs:
-            location = {'country': gl.country,'city': gl.city}
+            location = {'location': gl.location}
             locs.append(location) 
 
         if app.db.query(GuideLanguage).filter(GuideLanguage.userId == user.id).first():
@@ -1034,18 +1185,18 @@ def getGuides():
             totalGrade = totalGrade + rev.grade;
             numOfReviews = numOfReviews + 1 
           avgGrade = totalGrade/numOfReviews
-
         guide = {'firstName': user.firstName, 'lastName': user.lastName, 'userId': user.id,
           'desc': desc.propertyValue, 'photo': photo.propertyValue, 'grade': avgGrade,
           'numOfReviews': numOfReviews, 'locs': locs, 'langs': langs}
-        
         guides.append(guide)
+ 
     status = 'success'
     session.remove() 
-  except:
+ except:
     status = 'An error encountered while geting the user name and Properties, please try again later'
     return jsonify({'result': status}) 
-  return jsonify({'guides': guides})
+ session.remove()
+ return jsonify({'guides': guides})
 
   
 if __name__ == '__main__':

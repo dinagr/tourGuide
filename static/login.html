@@ -1,6 +1,7 @@
 <navigation-menu></navigation-menu>
 <div class="container">	
-	<message></message>
+	<message></message> 
+	<success-message></success-message> 
 	<div class="row">
 		<div class="col-xs-12 mainData">
 			<form ng-submit="loginForm()">
@@ -34,6 +35,10 @@
 					<button type="submit" value="create" class="btn btn-default">send me my credentials</button>
 				</div>
 			</form>
+			<div class="form-button">
+                                        <button type="submit" ng-click="hideEnterEmail()" class="btn btn-default">Cancel</button>
+                        </div>
+
 		</div>
 	</div>
 </div>

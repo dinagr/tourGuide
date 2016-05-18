@@ -22,6 +22,7 @@ TourGuideApp.controller('searchResults', ['$scope', '$routeParams', '$location',
     function ($scope, $routeParams, $location, AuthenticationService, searchGuides){
     $scope.guides = '';
     $scope.searchData = $routeParams.searchData;
+    $scope.searchFinished = '';
     AuthenticationService.getLoginStatus()
     .then(function(){
         $scope.message = AuthenticationService.message;
@@ -33,6 +34,7 @@ TourGuideApp.controller('searchResults', ['$scope', '$routeParams', '$location',
     $scope.search= function(data) {
         searchGuides.searchByLocation(data)
         .then(function(){
+	    $scope.searchFinished = true;
             $scope.message = searchGuides.message;
             $scope.guides = searchGuides.guides;
         });  
@@ -55,6 +57,7 @@ TourGuideApp.controller('advancedSearch', ['$scope', '$location'
     ,'AuthenticationService', 'guideService', 'searchGuides',
      function ($scope, $location, AuthenticationService, guideService, searchGuides){
     $scope.message = '';
+    $scope.searchFinished = '';
     AuthenticationService.getLoginStatus()
     .then(function(){
         $scope.message = AuthenticationService.message;
@@ -62,24 +65,6 @@ TourGuideApp.controller('advancedSearch', ['$scope', '$location'
         $scope.userType = AuthenticationService.userType;
         $scope.loginUserName = AuthenticationService.userName;
     });
-
-    $scope.getAllCountries = function(){
-        guideService.getCountriesList()
-        .then(function(){
-            $scope.message = guideService.message;
-            $scope.countries = guideService.countries;
-        });        
-    };
-    $scope.getAllCountries();
-    
-    $scope.getCitiesByCountry = function(country){
-        guideService.getCitiesList(country.id)
-        .then(function(){
-            $scope.message = guideService.message;
-            $scope.cities = guideService.cities;
-        });       
-    };
-
 
     $scope.open1 = function($event) {
                 $event.preventDefault();
@@ -94,10 +79,9 @@ TourGuideApp.controller('advancedSearch', ['$scope', '$location'
             };
 
     $scope.newSearch = function(){
-        var submitedCountry = ($scope.country ? $scope.country.name : 'noCountry') ;
-        var submitedCity = ($scope.city ? $scope.city.city : 'noCity') ;
+        var submitedLocation = ($scope.tourLocation ? $scope.tourLocation : 'noLocation') ;
         var submitedLanguage = ($scope.language ? $scope.language : 'noLanguage') ;
-        $location.path("/advancedSearch/" + submitedCountry + '/' + submitedCity + '/' + submitedLanguage 
+        $location.path("/advancedSearch/" + submitedLocation + '/' + submitedLanguage 
                 + '/' + searchGuides.formattedDate($scope.fromDate) + 
                 '/' + searchGuides.formattedDate($scope.toDate));
     };
@@ -119,72 +103,29 @@ TourGuideApp.controller('advancedSearchResults', ['$scope', '$location','$routeP
         $scope.loginUserName = AuthenticationService.userName;
     });
 
-    if ($routeParams.country == 'noCountry'){
-        $scope.country = '';    
+    if ($routeParams.location == 'noLocation'){
+        $scope.tourLocation = '';    
     }
-    if ($routeParams.city == 'noCity'){
-        $scope.city = '';    
+    else{
+        $scope.tourLocation = $routeParams.location;
     }
+
     if ($routeParams.language == 'noLanguage'){
         $scope.language = '';    
     }
     else{
         $scope.language = $routeParams.language;
     }   
+
     $scope.fromDate = $routeParams.fromDate;
     $scope.toDate = $routeParams.toDate;
 
-    if ($routeParams.country !== 'noCountry'){
-        guideService.getCountryObject($routeParams.country)
-        .then(function(){
-            $scope.message = guideService.message;
-            $scope.country = guideService.country[0];
-            guideService.getCitiesList($scope.country.id)
-            .then(function(){
-                $scope.message = guideService.message;
-                $scope.cities = guideService.cities;
-            });       
-        });
-        if ($routeParams.city !== 'noCity'){
-            guideService.getCityObject($routeParams.city)
-            .then(function(){
-                $scope.message = guideService.message;
-                $scope.city = guideService.city[0];
-            });
-        };
-    };
-
     $scope.clearSearchResults = function(){
-        $scope.country = '';
-        $scope.city = '';
+        $scope.tourLocation = '';
         $scope.language = '';
         $scope.fromDate = '';
         $scope.toDate = '';        
     };
-
-    $scope.getAllCountries = function(){
-        guideService.getCountriesList()
-        .then(function(){
-            $scope.message = guideService.message;
-            $scope.countries = guideService.countries;
-            
-        });        
-    };
-    $scope.getAllCountries();
-
-    $scope.init = function () {
-        $scope.country = $routeParams.country;
-}
-    
-    $scope.getCitiesByCountry = function(country){
-        guideService.getCitiesList(country.id)
-        .then(function(){
-            $scope.message = guideService.message;
-            $scope.cities = guideService.cities;
-            $scope.city = '';
-        });       
-    };
-
 
     $scope.open1 = function($event) {
                 $event.preventDefault();
@@ -199,18 +140,18 @@ TourGuideApp.controller('advancedSearchResults', ['$scope', '$location','$routeP
             };
 
     $scope.newSearch = function(){
-        var submitedCountry = ($scope.country ? $scope.country.name : 'noCountry') ;
-        var sbmitedCity = ($scope.city ? $scope.city.city : 'noCity') ;
+        var submitedLocation = ($scope.tourLocation ? $scope.tourLocation : 'noLocation') ;
         var submitedLanguage = ($scope.language ? $scope.language : 'noLanguage') ;
-        $location.path("/advancedSearch/" + submitedCountry + '/' + sbmitedCity + '/' + submitedLanguage 
+        $location.path("/advancedSearch/" + submitedLocation + '/' + submitedLanguage 
                 + '/' + searchGuides.formattedDate($scope.fromDate) + 
                 '/' + searchGuides.formattedDate($scope.toDate));
     };
 
     $scope.getSearchResults= function() {
-        searchGuides.advancedSearchGuides($routeParams.country, $routeParams.city, $routeParams.language, 
+        searchGuides.advancedSearchGuides($routeParams.location, $routeParams.language, 
             $routeParams.fromDate, $routeParams.toDate)
         .then(function(){
+	    $scope.searchFinished = true;
             $scope.message = searchGuides.message;
             $scope.guides = searchGuides.guides;
         }); 
@@ -248,6 +189,7 @@ TourGuideApp.controller('userRegister',['$scope', 'AuthenticationService', 'trav
 TourGuideApp.controller('login', ['$scope', 'AuthenticationService',
     function ($scope, AuthenticationService){
     $scope.message = '';
+    $scope.successMessage = '';
     AuthenticationService.getLoginStatus()
     .then(function(){
         $scope.message = AuthenticationService.message;
@@ -267,10 +209,14 @@ TourGuideApp.controller('login', ['$scope', 'AuthenticationService',
         $scope.showEmail = true;
     };
 
+     $scope.hideEnterEmail = function(){
+        $scope.showEmail = '';
+    };
+
     $scope.sendCredentials = function(){
         AuthenticationService.sendMyCredentials($scope.email)
         .then(function(){
-            $scope.message = AuthenticationService.message;
+            $scope.successMessage = AuthenticationService.successMessage;
         });
     };
 }]);     
@@ -316,10 +262,11 @@ TourGuideApp.controller('guideRegister', ['$scope', 'AuthenticationService', 'gu
 
 /**Controller for guide details**/
 /**This user needs to enter more data about him, such as - guide certificate, age and photo**/
-TourGuideApp.controller('guideDetails', ['$scope', '$routeParams', '$http', '$log', 'AuthenticationService', 
-    'guideService', function ($scope, $routeParams, $http, $log, AuthenticationService, guideService){
+TourGuideApp.controller('guideDetails', ['$scope', '$routeParams', '$http', '$log', '$location', '$window', 'AuthenticationService', 
+    'guideService', function ($scope, $routeParams, $http, $log, $location, $window, AuthenticationService, guideService){
     $scope.userId = $routeParams.userId;
     $scope.message = '';
+    $scope.photoUploading = '';
     AuthenticationService.getLoginStatus()
     .then(function(){
         $scope.message = AuthenticationService.message;
@@ -330,21 +277,26 @@ TourGuideApp.controller('guideDetails', ['$scope', '$routeParams', '$http', '$lo
      $scope.uploadFile = function(files) {
         $scope.file = new FormData();
         $scope.file.append("file", files[0]);
-    }; 
+    };
+ 
     $scope.submitGuideDetailsForm= function() {
-        guideService.saveGuidePhoto($routeParams.userId ,$scope.file)
+        $scope.photoUploading = true;
+	guideService.saveGuidePhoto($routeParams.userId ,$scope.file)
+        .then(function(){
+		$scope.photoUploading = '';
+        	$scope.message2 = guideService.message2;
+		if ($scope.message2 == 'success'){
+			$location.path("/guideAddLanguange/"+$routeParams.userId);
+		}
+	});
+
+        guideService.addNewGuideDetails($routeParams.userId ,$scope.age,
+        $scope.certificate, $scope.yearsOfExperience, $scope.desc)
         .then(function(){
 
-            $scope.message2 = guideService.message2;
-
-            guideService.addNewGuideDetails($routeParams.userId ,$scope.age, 
-            $scope.certificate, $scope.yearsOfExperience, $scope.desc)
-            .then(function(){
-
-                $scope.message = guideService.message;
-            });
+         	$scope.message = guideService.message;
         });
-           
+
     };
 
 }]);
@@ -407,26 +359,9 @@ TourGuideApp.controller('addCountiries', ['$scope', '$routeParams', 'Authenticat
         $scope.userType = AuthenticationService.userType;
         $scope.loginUserName = AuthenticationService.userName;
     });
-    $scope.getAllCountries = function(){
-        guideService.getCountriesList()
-        .then(function(){
-            $scope.message = guideService.message;
-            $scope.countries = guideService.countries;
-        });        
-    };
-    $scope.getAllCountries();
-    
-    $scope.getCitiesByCountry = function(country){
-        $scope.city = 'All cities';
-        guideService.getCitiesList(country.id)
-        .then(function(){
-            $scope.message = guideService.message;
-            $scope.cities = guideService.cities;
-        });       
-    };
 
-    $scope.removeLocation= function(country,city) {
-        guideService.removeGuideTourLocation(country, city, $routeParams.userId)
+    $scope.removeLocation= function(location) {
+        guideService.removeGuideTourLocation(location, $routeParams.userId)
         .then(function(){
             $scope.message = guideService.message;
             $scope.getLocations($routeParams.userId);
@@ -442,23 +377,29 @@ TourGuideApp.controller('addCountiries', ['$scope', '$routeParams', 'Authenticat
     $scope.getLocations($routeParams.userId);
 
     $scope.submitCountryCity= function() {      
-        var sbmitedCity = ($scope.city ? ($scope.city.city ? $scope.city.city : $scope.city) : '') ;
-        guideService.addGuideLocations($scope.country.name, sbmitedCity, $routeParams.userId)
-        .then(function(){
-            $scope.message = guideService.message;
-            $scope.getLocations($routeParams.userId);
-        });       
+        if ($scope.finishSearch){
+            guideService.addGuideLocations($scope.tourLocation, $routeParams.userId)
+            .then(function(){
+                $scope.message = guideService.message;
+                $scope.getLocations($routeParams.userId);
+            }); 
+        };     
     };
+
 }]);
 
 /**Controller for guide profile**/
 /**This page displays the guide profile that is visible to the users**/
 /**Other users can write reviews for the guide in his profile page**/
 /**Other users can write a private messgae to the guide**/ 
-TourGuideApp.controller('guideProfile', ['$scope', '$routeParams', 'AuthenticationService','guideService',
-    function ($scope, $routeParams, AuthenticationService, guideService){
+TourGuideApp.controller('guideProfile', ['$scope', '$location', '$routeParams', 'AuthenticationService','guideService',
+    function ($scope, $location, $routeParams, AuthenticationService, guideService){
     $scope.userId = $routeParams.userId;
     $scope.message = '';
+    $scope.file = '';
+    $scope.photoUploading = '';
+    $scope.showPhotoUpdate = '';
+
     AuthenticationService.getLoginStatus()
     .then(function(){
         $scope.message = AuthenticationService.message;
@@ -466,8 +407,9 @@ TourGuideApp.controller('guideProfile', ['$scope', '$routeParams', 'Authenticati
         $scope.userType = AuthenticationService.userType;
         $scope.loginUserName = AuthenticationService.userName;
     });
-
-    guideService.getGuideProfile($routeParams.userId)
+    
+    loadGuideData = function(){
+    	guideService.getGuideProfile($routeParams.userId)
         .then(function(){
             $scope.message = guideService.message;
             $scope.firstName = guideService.firstName;
@@ -478,6 +420,9 @@ TourGuideApp.controller('guideProfile', ['$scope', '$routeParams', 'Authenticati
             $scope.desc = guideService.desc;
             $scope.photo = guideService.photo;
         });
+    };
+
+    loadGuideData();
 
     guideService.getGuideLanguages($routeParams.userId)
         .then(function(){
@@ -496,6 +441,7 @@ TourGuideApp.controller('guideProfile', ['$scope', '$routeParams', 'Authenticati
         .then(function(){
             $scope.message = guideService.message;
             $scope.reviews = guideService.reviews;
+	    $scope.users = guideService.users;
         });
 
     $scope.getGradeFullStars = function(grade) {
@@ -514,8 +460,39 @@ TourGuideApp.controller('guideProfile', ['$scope', '$routeParams', 'Authenticati
         .then(function(){
             $scope.message = guideService.message;
             $scope.getReviews($routeParams.userId);
+	    $scope.review = '';
+	    $scope.reviewGrade = '';
         });
     };
+
+    $scope.uploadFile = function(files) {
+        $scope.file = new FormData();
+        $scope.file.append("file", files[0]);
+    };
+
+    $scope.enableEditPhoto =  function(){
+        $scope.showPhotoUpdate = true;
+    };
+
+    $scope.disableEditPhoto =  function(){
+        $scope.showPhotoUpdate = '';
+	console.log("I disabled");
+	console.log($scope.showPhotoUpdate);
+    };
+
+    $scope.updatePhoto = function(){
+
+        $scope.photoUploading = true;
+        guideService.updateGuidePhoto($routeParams.userId ,$scope.file)
+        .then(function(){
+                $scope.photoUploading = '';
+                $scope.showPhotoUpdate = '';
+                $scope.message2 = guideService.message2;
+		loadGuideData();
+
+        });
+    };
+
 
 }]);
 
@@ -602,7 +579,6 @@ TourGuideApp.controller('editGuideDetails', ['$scope', '$routeParams', '$locatio
     function ($scope, $routeParams, $location, AuthenticationService, guideService){
     $scope.userId = $routeParams.userId;
     $scope.message = '';
-    $scope.file = '';
     AuthenticationService.getLoginStatus()
     .then(function(){
         $scope.message = AuthenticationService.message;
@@ -629,26 +605,16 @@ TourGuideApp.controller('editGuideDetails', ['$scope', '$routeParams', '$locatio
             $scope.email = guideService.email;
         });
 
-    $scope.uploadFile = function(files) {
-        $scope.file = new FormData();
-        $scope.file.append("file", files[0]);
-    };
-
-    $scope.updateGuideDetails= function() {
+    $scope.updateGuideDetails= function(){
         guideService.updateProfile($scope.firstName ,$scope.lastName 
-                ,$scope.email, $scope.certificate, $scope.age,
-                $scope.years, $scope.descrip, $routeParams.userId)
+                ,$scope.email, $scope.certificate,
+                $scope.years, $scope.descrip, $scope.age, $routeParams.userId)
         .then(function(){
-            $scope.message = guideService.message;
+            $scope.message = guideService.message;      
+	    if ($scope.message == 'success'){
+	    	$location.path('/guideProfile/' + $routeParams.userId);
+	    }
         });
-
-        if ($scope.file)
-        { 
-            guideService.updateGuidePhoto($routeParams.userId ,$scope.file)
-            .then(function(){
-                $scope.message2 = guideService.message2;
-            });
-        };
     };
 }]);
 
@@ -721,6 +687,7 @@ TourGuideApp.controller('writeMessage', ['$scope', '$routeParams', '$location',
         .then(function(){
             $scope.message = privateChat.message;
             $scope.getMessages($routeParams.userId, $routeParams.secondUserId);
+	    $scope.successMessage = privateChat.successMessage;
         });
     };
 }]);

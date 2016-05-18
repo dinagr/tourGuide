@@ -7,28 +7,17 @@
 				<h4 class="formHeadline">Advanced search</h4>
 				<div class="form-group form-button">
 					<label for="country">From Date</label>
-					<input type="text" ng-click='open1($event)' class="calendar-form campaign-form-calendar-input" id='campaign-date' datepicker-popup="dd/MM/yy" ng-model="fromDate" is-open="opened1" datepicker-options="dateOptions" ng-required="true" close-text="Close" placeholder='I am busy from date' required/>
+					<input type="text" ng-click='open1($event)' class="calendar-form campaign-form-calendar-input" id='campaign-date' datepicker-popup="dd/MM/yy" ng-model="fromDate" is-open="opened1" datepicker-options="dateOptions" ng-required="true" close-text="Close" required/>
 					<button type="button" class="btn btn-default" ng-click="open1($event)"><i class="glyphicon glyphicon-calendar"></i></button>	
 				</div>
 				<div class="form-group form-button">
 					<label for="country">To Date</label>
-					<input type="text" ng-click='open2($event)' class="calendar-form campaign-form-calendar-input" id='campaign-date' datepicker-popup="dd/MM/yy" ng-model="toDate" is-open="opened2" datepicker-options="dateOptions" ng-required="true" close-text="Close" placeholder='I am busy until date' required/>
+					<input type="text" ng-click='open2($event)' class="calendar-form campaign-form-calendar-input" id='campaign-date' datepicker-popup="dd/MM/yy" ng-model="toDate" is-open="opened2" datepicker-options="dateOptions" ng-required="true" close-text="Close" required/>
 					<button type="button" class="btn btn-default" ng-click="open2($event)"><i class="glyphicon glyphicon-calendar"></i></button>	
 				</div>
 				<div class="form-group">
-					<label for="country">Country:</label>
-					<select  class="form-control" ng-model="country" ng-change="getCitiesByCountry(country)" ng-options="x.name for x in countries | orderBy:'name'">
-						<option value="">{{country.name}}</option>
-					</select>
-				</div>
-				<div class="form-group">
-					<label for="city">City:</label>
-					<select class="form-control" ng-show="cities" ng-model="city" ng-options="x.city for x in cities | orderBy:'city'">
-						<option value="">{{city.city}}</option>
-					</select>
-					<select class="form-control" ng-show="!cities">
-						<option>No cities - choose a country first</option>
-					</select>
+					<label for="country">Location:</label>
+					<input type="text" class="form-control" required ng-model="tourLocation" googleplace>
 				</div>
 				<div class="form-group">
 					<label for="language">Language:</label>
@@ -86,7 +75,7 @@
 					<div class="col-xs-4">
 						<span class="profile-mini-header">Tour locations</span>
 						<p ng-repeat="loc in guide.locs | limitTo:4" class="profile" ng-show="guide.locs.length > 0">
-						  	{{loc.city}},{{loc.country}}
+						  	{{loc.location}}
 						</p>
 						<p class="profile" ng-show="locs.length == 0">
 						  	No locations were entered
@@ -105,7 +94,7 @@
 			</div>		
 		</div>
 	</div>
-	<div class="row mainData profile-mini-header" ng-show="guides.length == 0">
+	<div class="row mainData profile-mini-header" ng-show="guides.length == 0 && searchFinished">
 		<div class="col-xs-12">
 			 Search results were not found
 		</div>
