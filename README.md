@@ -2,7 +2,7 @@
 
 ## General
 
-This is a web app that enbales guides to sign in and create a guide profile.
+This is a web app that enables guides to sign in and create a guide profile.
 Travelers that are looking for guides can search for guides by different criterias.
 
 ### Technologies
