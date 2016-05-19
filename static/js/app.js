@@ -1,4 +1,3 @@
-'use strict';
 
 var TourGuideApp = angular.module('TourGuideApp', ['ngRoute', 'ui.bootstrap']);
 

@@ -55,8 +55,9 @@
 	</div>
 	</br>
 	</br>
-	<div class="row" ng-show="guides.length > 0" ng-repeat="guide in guides | orderBy:'-grade'">
+	<div class="row" ng-repeat="guide in guides | orderBy:'-grade'">
 		<div class="col-xs-12">
+		   <a ng-href="#/guideProfile/{{guide.userId}}">
 			<div class="thumbnail form-button">
 				<div class="row">
 					<div class="col-xs-4">
@@ -69,8 +70,8 @@
 						  	<span class="glyphicon glyphicon-star" ng-if="guide.grade >= 5"></span>
 					    	<span class = "review-time">(Out of {{guide.numOfReviews}} reviews)</span> 
 					    </p>
-					    <p ng-show="!guide.grade" class="review-time">No review</p>
-					    <a ng-href="#/guideProfile/{{guide.userId}}"><img ng-src="static/uploads/{{guide.photo}}" alt="static/style/noImage.png" class="img-circle" style="width: auto; height: auto; max-width:10vw; max-height:10vw;"></a>	     
+					    <p ng-show="!guide.grade" class="review-time">No reviews</p>
+					    <img ng-src="static/uploads/{{guide.photo}}" alt="static/style/noImage.png" class="img-circle" style="width: auto; height: auto; max-width:10vw; max-height:10vw;">	     
 					</div>
 					<div class="col-xs-4">
 						<span class="profile-mini-header">Tour locations</span>
@@ -91,6 +92,7 @@
 						</p>
 					</div>
 				</div>
+			    </a>
 			</div>		
 		</div>
 	</div>

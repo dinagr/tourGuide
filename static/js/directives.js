@@ -1,3 +1,4 @@
+
 TourGuideApp.directive("navigationMenu", function() {
    return {
        restrict: 'E',
@@ -38,3 +39,4 @@ TourGuideApp.directive('googleplace', function() {
 
     }
 });
+

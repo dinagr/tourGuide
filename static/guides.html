@@ -17,7 +17,8 @@
 					    	<span class = "review-time">(Out of {{guide.numOfReviews}} reviews)</span> 
 					    </p>
 					    <p ng-show="!guide.grade" class="review-time">No reviews</p>
-					    <img ng-src="static/uploads/{{guide.photo}}" alt="static/style/noImage.png" class="img-circle" style="width: auto; height: auto; max-width:10vw; max-height:10vw;">	     
+					    <img ng-if="guide.photo" ng-src="static/uploads/{{guide.photo}}" class="img-circle" style="width: auto; height: auto; max-width:10vw; max-height:10vw;">	     
+					    <img ng-if="!guide.photo" src="static/uploads/nouser.jpg" class="img-circle" style="width: auto; height: auto; max-width:10vw; max-height:10vw;">
 					</div>
 					<div class="col-xs-4">
 						<span class="profile-mini-header">Tour locations</span>

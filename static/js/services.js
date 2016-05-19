@@ -1,3 +1,4 @@
+
 /**This service manages authentications - login, logout, check who is logged**/
 TourGuideApp.service('AuthenticationService', ['$http', '$location',
  function ($http, $location) {
@@ -308,7 +309,7 @@ TourGuideApp.service('guideService', ['$http', '$location', 'searchGuides',
                 {
                     obj.firstName = data.firstName;
                     obj.lastName = data.lastName;
-                    obj.age = data.age;
+                    obj.age = data.age[0];
                     obj.years = data.years[0];
                     obj.certificate = data.certificate[0];
                     obj.desc = data.desc[0];
@@ -479,10 +480,12 @@ TourGuideApp.service('searchGuides', ['$http', function ($http) {
     /**Get all the guides data**/
     obj.getAllGuides = function (userId) {
         obj.message = '';
+	console.log("strat getting guides");
         return  $http.get('/getGuides')
                 .success(function(data)
                 {
                     obj.guides = data.guides;
+		    console.log("finish service for getting guides");
                 }).error(function(data)
                 {
                     obj.message = 'something went wrong! please try again';
@@ -531,3 +534,5 @@ TourGuideApp.service('searchGuides', ['$http', function ($http) {
 
     return obj;
 }]);
+
+

@@ -15,7 +15,7 @@ from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-engine = create_engine('postgresql://tourguide:tourGuideLinuxDina@localhost/findYourTourGuide')
+engine = create_engine('postgresql://tourguide:tourGuideLinuxDina@localhost/findYourTourGuide', convert_unicode=True, pool_size=20, max_overflow=100)
 Base.metadata.bind = engine
 session = scoped_session(sessionmaker(bind=engine, autoflush=False))
 app = Flask(__name__)
@@ -199,7 +199,7 @@ def getPropPhoto():
 @app.route('/')
 @app.route('/main/')
 def home():
-    return render_template('home.html', login_session = login_session)
+    return render_template('home.html')
 
 # Add new user of type traveller
 @app.route('/newUser', methods=['POST'])
@@ -500,7 +500,7 @@ def uploadFile(user_id):
   status = ''
   if not app.db.query(UserPropertyAssigned).filter(UserPropertyAssigned.userId == user_id,\
      UserPropertyAssigned.propertyId == getPropPhoto()).first():
-  	try:
+  	    #try:
             if allowed_file(file.filename):
         	file.save(os.path.join(app.config['UPLOAD_FOLDER'], file.filename))
 		print("I save photo")
@@ -515,9 +515,9 @@ def uploadFile(user_id):
 	    else:
 		session.remove()
         	status = 'Please choose a file from type jpg / jpeg / png'
-        except:
-	    session.remove()
-     	    status = 'An error encountered while saving the user photo, please try again later'
+            #except:
+	    #session.remove()
+     	    #status = 'An error encountered while saving the user photo, please try again later'
   else:
 	session.remove()
 	status = 'There is allready a photo for this guide'
@@ -1142,9 +1142,9 @@ def getReviews(user_id):
 # Get all guides data
 @app.route('/getGuides', methods=['GET'])
 def getGuides():
- status = ''
- guides = []
- try:
+   status = ''
+   guides = []
+   #try:
    if app.db.query(User).filter(User.userType == 'G').first():
     users = app.db.query(User).filter(User.userType == 'G').all()
     for user in users:
@@ -1192,11 +1192,12 @@ def getGuides():
  
     status = 'success'
     session.remove() 
- except:
-    status = 'An error encountered while geting the user name and Properties, please try again later'
-    return jsonify({'result': status}) 
- session.remove()
- return jsonify({'guides': guides})
+    #except:
+    #status = 'An error encountered while geting the user name and Properties, please try again later'
+    #return jsonify({'result': status}) 
+    session.remove()
+    return jsonify({'guides': guides})
+    
 
   
 if __name__ == '__main__':

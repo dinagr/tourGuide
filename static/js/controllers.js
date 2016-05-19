@@ -1,3 +1,4 @@
+
 /**Controller for main page (home page)**/
 /**This page includes general search by location (country or city)**/
 TourGuideApp.controller('mainPageSearch', ['$scope', '$http', '$location', 'AuthenticationService', 
@@ -408,7 +409,7 @@ TourGuideApp.controller('guideProfile', ['$scope', '$location', '$routeParams', 
         $scope.loginUserName = AuthenticationService.userName;
     });
     
-    loadGuideData = function(){
+    $scope.loadGuideData = function(){
     	guideService.getGuideProfile($routeParams.userId)
         .then(function(){
             $scope.message = guideService.message;
@@ -422,7 +423,7 @@ TourGuideApp.controller('guideProfile', ['$scope', '$location', '$routeParams', 
         });
     };
 
-    loadGuideData();
+    $scope.loadGuideData();
 
     guideService.getGuideLanguages($routeParams.userId)
         .then(function(){
@@ -488,7 +489,7 @@ TourGuideApp.controller('guideProfile', ['$scope', '$location', '$routeParams', 
                 $scope.photoUploading = '';
                 $scope.showPhotoUpdate = '';
                 $scope.message2 = guideService.message2;
-		loadGuideData();
+		$scope.loadGuideData();
 
         });
     };
@@ -564,10 +565,12 @@ TourGuideApp.controller('guidesData', ['$scope', '$routeParams', 'Authentication
         $scope.loginUserName = AuthenticationService.userName;
     });
 
+    console.log("inside guides controller");
     searchGuides.getAllGuides()
     .then(function(){
         $scope.message = searchGuides.message;
         $scope.guides = searchGuides.guides;
+	console.log("finish getting guides");
     });
 
 }]);
@@ -691,7 +694,6 @@ TourGuideApp.controller('writeMessage', ['$scope', '$routeParams', '$location',
         });
     };
 }]);
-
 
 
 
